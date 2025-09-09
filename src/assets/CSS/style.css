@@ -1,0 +1,71 @@
+:root {
+  --bg-main: #000;
+  --text-main: #fff;
+  --text-secondary: #d3d3d3;
+  --accent-blue: #1E90FF;
+  --accent-green: #39FF14;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Roboto', sans-serif;
+}
+
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.text-neon {
+  color: var(--accent-green) !important;
+}
+
+.bg-secondary {
+  background-color: #18181c !important;
+}
+.border-primary {
+  border-color: var(--accent-blue) !important;
+}
+
+.navbar-electric {
+  background: var(--accent-blue) !important;
+  box-shadow: 0 2px 8px #1e90ff44;
+}
+
+.navbar-electric .nav-link {
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.navbar-electric .link-accent {
+  color: var(--accent-green) !important;
+  font-weight: 500;
+  text-decoration: underline;
+  transition: color .2s;
+  padding: 0 0.5rem;
+}
+.navbar-electric .link-accent:hover {
+  color: #fff !important;
+  background: #39FF1422;
+  border-radius: 6px;
+}
+
+.navbar-electric .fs-4,
+.navbar-electric .bi-cart {
+  color: #fff;
+}
+
+.hero-wireframe {
+  background: #18181c;
+  border-radius: 20px;
+  box-shadow: 0 0 16px #1E90FF33;
+}
+
+.btn-whatsapp-footer {
+  box-shadow: 0 0 10px #39FF1444;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-whatsapp-footer:hover {
+  background-color: #32CD32 !important;
+  color: #000 !important;
+}
