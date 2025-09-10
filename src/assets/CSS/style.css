@@ -69,3 +69,50 @@ body {
   background-color: #32CD32 !important;
   color: #000 !important;
 }
+
+.equipo-lista {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.miembro {
+  background: #23272b;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  width: 220px;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.12);
+  color: #39FF14; /* Letras color verde neón */
+  font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
+}
+
+.miembro h3 {
+  color: #39FF14;
+  font-size: 1.15rem;
+  margin-top: 0.5rem;
+}
+
+.miembro p {
+  color: #fff;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.miembro img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.15);
+}
+
+#equipo h2 {
+  color: #39FF14;
+  text-align: center;
+  font-family: 'Orbitron', Arial, sans-serif;
+}
