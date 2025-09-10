@@ -1,30 +1,30 @@
-/* ------------------------------
-   Datos base
------------------------------- */
 const CATEGORIAS = [
   "Juegos de Mesa","Accesorios","Consolas","Computadores Gamers",
   "Sillas Gamers","Mouse","Mousepad","Poleras Personalizadas","Polerones Gamers Personalizados"
 ];
 
 const PRODUCTOS = [
-  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Juego de estrategia (3-4 jugadores).", img:"assets/img/catan.webp" },
-  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Colocación de losetas (2-5 jugadores).", img:"assets/img/carcassonne.webp" },
-  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Botones mapeables y gran ergonomía.", img:"assets/img/xbox_controller.webp" },
-  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Sonido envolvente y mic desmontable.", img:"assets/img/hyperx_cloud_ii.webp" },
-  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"Next-gen con SSD ultrarrápido.", img:"assets/img/ps5.webp" },
-  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Rendimiento de alto nivel.", img:"assets/img/rog_strix.webp" },
-  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Ergonómica y ajustable.", img:"assets/img/secretlab_titan.webp" },
-  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Sensor de alta precisión.", img:"assets/img/g502.webp" },
-  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Superficie amplia + RGB.", img:"assets/img/goliathus.webp" },
-  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Personaliza con tu gamer tag.", img:"assets/img/polera.webp" }
+  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Juego de estrategia (3-4 jugadores).", img:"catan2.jpg" },
+  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Colocación de losetas (2-5 jugadores).", img:"carcassonne.jpg" },
+  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Botones mapeables y gran ergonomía.", img:"xbox_controller.webp" },
+  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Sonido envolvente y mic desmontable.", img:"hyperx_cloud_ii_red_1_main.webp" },
+  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"Next-gen con SSD ultrarrápido.", img:"ps5.webp" },
+  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Rendimiento de alto nivel.", img:"rog_strix.jpg" },
+  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Ergonómica y ajustable.", img:"sillageimer.jpg" },
+  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Sensor de alta precisión.", img:"g502-heroe.jpg" },
+  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Superficie amplia + RGB.", img:"mauspad.jpg" },
+  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Personaliza con tu gamer tag.", img:"poleraLevel.png" },
+  { cod:"JM003", cat:"Juegos de Mesa", nombre:"Chino con las meas castañas", precio:150000, desc:"Chino con enormes nueses debajo de su pantalón está desesperado por un pene enorme", img:"yuhui.png"}
 ];
 
-// Reseñas en memoria por código de producto
-const REVIEWS = {}; // { cod: [ {nombre, rating, comentario} ] }
+function getImgPath(filename) {
+  if (window.location.pathname.includes('assets/page/') || window.location.pathname.includes('/page/')) {
+    return '../img/' + filename;
+  }
+  return 'assets/img/' + filename;
+}
 
-/* ------------------------------
-   Estado de sesión (sin storage)
------------------------------- */
+const REVIEWS = {}; // { cod: [ {nombre, rating, comentario} ] }
 const estado = {
   usuario: {
     nombre: "", correo: "", nacimiento: "", referido: "",
@@ -33,14 +33,10 @@ const estado = {
   carrito: [] // [{cod,nombre,precio,qty}]
 };
 
-/* ------------------------------
-   Utilidades
------------------------------- */
 const $ = (sel)=>document.querySelector(sel);
 const $$ = (sel)=>document.querySelectorAll(sel);
 
 function formateaCLP(n){ return n.toLocaleString("es-CL")+" CLP"; }
-
 function edadDesde(fechaStr){
   if(!fechaStr) return 0;
   const hoy=new Date(), f=new Date(fechaStr);
@@ -49,7 +45,6 @@ function edadDesde(fechaStr){
   if(m<0 || (m===0 && hoy.getDate()<f.getDate())) e--;
   return e;
 }
-
 function calcularNivel(puntos){
   if(puntos>=500) return "Diamante";
   if(puntos>=250) return "Platino";
@@ -58,9 +53,6 @@ function calcularNivel(puntos){
   return "Bronce";
 }
 
-/* ------------------------------
-   SPA: navegación de secciones
------------------------------- */
 function mostrarSeccion(id){
   $$(".seccion").forEach(s=>s.classList.remove("activo"));
   const target = $("#"+id) || $("#home");
@@ -70,11 +62,10 @@ function mostrarSeccion(id){
   if(id==="perfil")   pintarEstadoPerfil();
 }
 
-/* ------------------------------
-   Catálogo + filtros
------------------------------- */
 function initFiltros(){
   const sel=$("#filtro-categoria");
+  if (!sel) return;
+  if(sel.options.length > 1) return;
   CATEGORIAS.forEach(c=>{
     const opt=document.createElement("option");
     opt.value=c; opt.textContent=c; sel.appendChild(opt);
@@ -90,12 +81,13 @@ function coincideProducto(p, q, cat, min, max){
 }
 
 function cardProducto(p){
+  const imgPath = getImgPath(p.img);
   const codShare = encodeURIComponent(`${p.nombre} en Level-Up Gamer`);
-  const urlShare = encodeURIComponent("#"); // si luego tienes URL real, reemplaza
+  const urlShare = encodeURIComponent("#");
   return `
   <div class="col-sm-6 col-md-4 col-lg-3">
     <div class="card bg-secondary text-light h-100 product-card">
-      <img src="${p.img}" class="card-img-top" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.webp'">
+      <img src="${imgPath}" class="card-img-top" alt="${p.nombre}" onerror="this.src='${imgPath.replace(p.img,'placeholder.webp')}'">
       <div class="card-body d-flex flex-column">
         <h5 class="card-title">${p.nombre}</h5>
         <span class="badge bg-primary mb-2">${p.cat}</span>
@@ -103,7 +95,7 @@ function cardProducto(p){
         <p class="precio fw-bold mb-2">${formateaCLP(p.precio)}</p>
         <div class="mt-auto d-grid gap-2">
           <button class="btn btn-success" onclick="agregarAlCarrito('${p.cod}')">Agregar</button>
-          <button class="btn btn-outline-light" onclick="abrirModalProducto('${p.cod}')">Detalles / Reseñas</button>
+          <a class="btn btn-outline-light" href="product.html?cod=${p.cod}">Detalles / Reseñas</a>
           <div class="d-flex gap-2 justify-content-center">
             <a class="btn btn-sm btn-outline-light" target="_blank" rel="noopener"
                href="https://www.facebook.com/sharer/sharer.php?u=${urlShare}&quote=${codShare}">Facebook</a>
@@ -121,7 +113,8 @@ function renderCatalogo(){
   const cat=$("#filtro-categoria")?.value||"";
   const min=parseInt($("#filtro-min")?.value||"");
   const max=parseInt($("#filtro-max")?.value||"");
-  const cont=$("#grid-productos");
+  const cont=$("#grid-productos") || $("#productos-lista");
+  if (!cont) return;
   cont.innerHTML = PRODUCTOS
     .filter(p=>coincideProducto(p,q,cat,min,max))
     .map(p=>cardProducto(p))
@@ -129,16 +122,13 @@ function renderCatalogo(){
 }
 
 function limpiarFiltros(){
-  $("#busqueda").value="";
-  $("#filtro-categoria").value="";
-  $("#filtro-min").value="";
-  $("#filtro-max").value="";
+  if($("#busqueda")) $("#busqueda").value="";
+  if($("#filtro-categoria")) $("#filtro-categoria").value="";
+  if($("#filtro-min")) $("#filtro-min").value="";
+  if($("#filtro-max")) $("#filtro-max").value="";
   renderCatalogo();
 }
 
-/* ------------------------------
-   Carrito
------------------------------- */
 function agregarAlCarrito(cod){
   const prod = PRODUCTOS.find(p=>p.cod===cod);
   if(!prod) return;
@@ -165,11 +155,13 @@ function cambiarQty(idx, delta){
 
 function actualizarBadgeCarrito(){
   const totalUnidades = estado.carrito.reduce((a,i)=>a+i.qty,0);
-  $("#badge-carrito").textContent = totalUnidades;
+  const badge = $("#badge-carrito");
+  if (badge) badge.textContent = totalUnidades;
 }
 
 function renderCarrito(){
   const list=$("#carrito-lista");
+  if(!list) return;
   if(estado.carrito.length===0){
     list.innerHTML = `<div class="list-group-item bg-dark text-light">Tu carrito está vacío.</div>`;
   }else{
@@ -197,39 +189,35 @@ function actualizarTotales(){
   const esDuoc = estado.usuario.esDuoc;
   const desc = esDuoc ? Math.round(subtotal*0.20) : 0;
 
-  // Canje puntos (10 puntos = 100 CLP por ejemplo)
-  const rate = 10; // 10 pts -> 100 CLP
-  const factor = 10; // pasos de 10
+  const rate = 10;
+  const factor = 10;
   const disponibles = estado.usuario.puntos;
-  $("#puntos-disponibles").textContent = disponibles;
+  if ($("#puntos-disponibles")) $("#puntos-disponibles").textContent = disponibles;
 
-  let canje = parseInt($("#canje-puntos").value||0);
+  let canje = parseInt($("#canje-puntos")?.value||0);
   if(isNaN(canje) || canje<0) canje = 0;
-  canje = Math.min(canje - (canje%factor), disponibles); // múltiplos de 10
-  $("#canje-puntos").value = canje;
+  canje = Math.min(canje - (canje%factor), disponibles);
+  if ($("#canje-puntos")) $("#canje-puntos").value = canje;
 
-  const descuentoPuntos = (canje/rate)*100; // 10 pts = 100 CLP
+  const descuentoPuntos = (canje/rate)*100;
   const total = Math.max(0, subtotal - desc - descuentoPuntos);
 
-  $("#subtotal").textContent = formateaCLP(subtotal);
-  $("#descuento").textContent = formateaCLP(desc);
-  $("#linea-descuento").style.display = esDuoc && subtotal>0 ? "block":"none";
-  $("#total").textContent = formateaCLP(total);
+  if ($("#subtotal")) $("#subtotal").textContent = formateaCLP(subtotal);
+  if ($("#descuento")) $("#descuento").textContent = formateaCLP(desc);
+  if ($("#linea-descuento")) $("#linea-descuento").style.display = esDuoc && subtotal>0 ? "block":"none";
+  if ($("#total")) $("#total").textContent = formateaCLP(total);
 }
 
 function checkout(){
   if(estado.carrito.length===0){ alert("Tu carrito está vacío."); return; }
-  // Consumir puntos canjeados
-  const canje = parseInt($("#canje-puntos").value||0) || 0;
+  const canje = parseInt($("#canje-puntos")?.value||0) || 0;
   estado.usuario.puntos = Math.max(0, estado.usuario.puntos - canje);
 
-  // Sumar puntos por compra (1 punto por cada $1.000 CLP de subtotal)
   const subtotal = estado.carrito.reduce((a,i)=>a+i.precio*i.qty,0);
   const puntosGanados = Math.floor(subtotal / 1000);
   estado.usuario.puntos += puntosGanados;
   estado.usuario.nivel = calcularNivel(estado.usuario.puntos);
 
-  // Vaciar carrito
   estado.carrito = [];
   actualizarBadgeCarrito();
   renderCarrito();
@@ -238,35 +226,33 @@ function checkout(){
   alert(`Compra realizada 🎉\nGanaste ${puntosGanados} puntos LevelUp.`);
 }
 
-/* ------------------------------
-   Perfil / Registro
------------------------------- */
 function guardarPerfil(){
-  const nombre = $("#perfil-nombre").value.trim();
-  const correo = $("#perfil-correo").value.trim();
-  const nacimiento = $("#perfil-nacimiento").value;
-  const referido = $("#perfil-referido").value.trim();
+  const nombre = $("#perfil-nombre")?.value.trim();
+  const correo = $("#perfil-correo")?.value.trim();
+  const nacimiento = $("#perfil-nacimiento")?.value;
+  const referido = $("#perfil-referido")?.value.trim();
 
   const alerta = $("#alerta-perfil");
-  alerta.classList.add("d-none");
+  if (alerta) alerta.classList.add("d-none");
 
   if(!nombre || !correo || !nacimiento){
-    alerta.className = "alert alert-warning mt-3";
-    alerta.textContent = "Completa nombre, correo y fecha de nacimiento.";
+    if (alerta) {
+      alerta.className = "alert alert-warning mt-3";
+      alerta.textContent = "Completa nombre, correo y fecha de nacimiento.";
+    }
     return;
   }
 
-  // Validar +18
   if(edadDesde(nacimiento) < 18){
-    alerta.className = "alert alert-danger mt-3";
-    alerta.textContent = "Debes ser mayor de 18 años para registrarte.";
+    if (alerta) {
+      alerta.className = "alert alert-danger mt-3";
+      alerta.textContent = "Debes ser mayor de 18 años para registrarte.";
+    }
     return;
   }
 
-  // Marcar beneficio DUOC
   const esDuoc = /@duoc\.cl$/i.test(correo);
 
-  // Puntos por referido simple (si ingresó un código válido, suma 25)
   let puntosExtra = 0;
   if(referido){
     puntosExtra = 25;
@@ -279,94 +265,23 @@ function guardarPerfil(){
     nivel: calcularNivel(estado.usuario.puntos)
   };
 
-  alerta.className = "alert alert-success mt-3";
-  alerta.innerHTML = `Datos guardados. ${esDuoc ? "Descuento DUOC 20% activo. " : ""}${puntosExtra?`+${puntosExtra} Puntos por referido.`:""}`;
+  if (alerta) {
+    alerta.className = "alert alert-success mt-3";
+    alerta.innerHTML = `Datos guardados. ${esDuoc ? "Descuento DUOC 20% activo. " : ""}${puntosExtra?`+${puntosExtra} Puntos por referido.`:""}`;
+  }
 
   pintarEstadoPerfil();
   refrescarBeneficios();
 }
 
 function pintarEstadoPerfil(){
-  $("#estado-duoc").textContent = estado.usuario.esDuoc ? "Sí (20%)" : "No";
-  $("#perfil-puntos").textContent = estado.usuario.puntos;
-  $("#perfil-nivel").textContent = estado.usuario.nivel;
+  if ($("#estado-duoc")) $("#estado-duoc").textContent = estado.usuario.esDuoc ? "Sí (20%)" : "No";
+  if ($("#perfil-puntos")) $("#perfil-puntos").textContent = estado.usuario.puntos;
+  if ($("#perfil-nivel")) $("#perfil-nivel").textContent = estado.usuario.nivel;
 }
 
 function refrescarBeneficios(){
-  // Reflejar descuento DUOC en el carrito si está activo
   actualizarTotales();
-}
-
-/* ------------------------------
-   Modal Producto (detalles + reseñas)
------------------------------- */
-function abrirModalProducto(cod){
-  const p = PRODUCTOS.find(x=>x.cod===cod);
-  if(!p) return;
-  const id = "modal-"+cod;
-  let modal = document.getElementById(id);
-  if(!modal){
-    modal = document.createElement("div");
-    modal.id = id;
-    modal.className = "modal fade";
-    modal.tabIndex = -1;
-    modal.innerHTML = `
-      <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content bg-dark text-light">
-          <div class="modal-header">
-            <h5 class="modal-title">${p.nombre}</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row g-3">
-              <div class="col-md-5">
-                <img src="${p.img}" class="img-fluid rounded" alt="${p.nombre}" onerror="this.src='assets/img/placeholder.webp'">
-              </div>
-              <div class="col-md-7">
-                <span class="badge bg-primary">${p.cat}</span>
-                <p class="mt-2">${p.desc}</p>
-                <p class="fw-bold">${formateaCLP(p.precio)}</p>
-                <button class="btn btn-success mb-3" onclick="agregarAlCarrito('${p.cod}')">Agregar al carrito</button>
-
-                <h6 class="mt-3">Reseñas</h6>
-                <div id="reviews-${p.cod}" class="mb-3"></div>
-
-                <div class="card bg-secondary">
-                  <div class="card-body">
-                    <div class="row g-2">
-                      <div class="col-md-4">
-                        <input id="rv-nombre-${p.cod}" class="form-control" placeholder="Tu nombre">
-                      </div>
-                      <div class="col-md-3">
-                        <select id="rv-rating-${p.cod}" class="form-select">
-                          <option value="5">5 ★</option>
-                          <option value="4">4 ★</option>
-                          <option value="3">3 ★</option>
-                          <option value="2">2 ★</option>
-                          <option value="1">1 ★</option>
-                        </select>
-                      </div>
-                      <div class="col-md-12">
-                        <textarea id="rv-com-${p.cod}" class="form-control" placeholder="Escribe tu reseña..."></textarea>
-                      </div>
-                      <div class="col-md-12">
-                        <button class="btn btn-outline-light" onclick="guardarReview('${p.cod}')">Publicar reseña</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-  pintarReviews(cod);
-  const bs = new bootstrap.Modal(modal);
-  bs.show();
 }
 
 function guardarReview(cod){
@@ -389,11 +304,103 @@ function pintarReviews(cod){
     : `<div class="text-muted">Aún no hay reseñas.</div>`;
 }
 
-/* ------------------------------
-   Inicio
------------------------------- */
-document.addEventListener("DOMContentLoaded", ()=>{
+document.addEventListener("DOMContentLoaded", function() {
   initFiltros();
   renderCatalogo();
   mostrarSeccion("home");
+
+  function getParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  }
+  const cod = getParam("cod");
+  if (cod) {
+    const prod = PRODUCTOS.find(p => p.cod === cod);
+    if (!prod) return;
+    if ($("#breadcrumb-cat")) $("#breadcrumb-cat").textContent = prod.cat;
+    if ($("#breadcrumb-title")) $("#breadcrumb-title").textContent = prod.nombre;
+    if ($("#main-img")) $("#main-img").src = getImgPath(prod.img);
+    if ($("#product-title")) $("#product-title").textContent = prod.nombre;
+    if ($("#product-price")) $("#product-price").textContent = formateaCLP(prod.precio);
+    if ($("#product-desc")) $("#product-desc").textContent = prod.desc;
+    if ($("#miniaturas")) $("#miniaturas").innerHTML = `<img src="${getImgPath(prod.img)}" class="img-thumbnail border border-primary" style="width:60px; height:60px; object-fit:cover;">`;
+
+    if ($("#add-to-cart")) {
+      $("#add-to-cart").onclick = function() {
+        const qty = parseInt($("#qty").value) || 1;
+        for (let i = 0; i < qty; i++) agregarAlCarrito(prod.cod);
+      };
+    }
+
+    function pintarReviewsProducto() {
+      const cont = $("#reviews-product");
+      const lista = REVIEWS[cod]||[];
+      if(!cont) return;
+      cont.innerHTML = lista.length
+        ? lista.map(r=>
+          `<div class="review mb-2">
+            <strong>${r.nombre}</strong> — ${"★".repeat(r.rating)}<br>${r.comentario}
+          </div>`
+        ).join("")
+        : `<div class="text-muted">Aún no hay reseñas.</div>`;
+    }
+    pintarReviewsProducto();
+
+    if ($("#btn-review")) {
+      $("#btn-review").onclick = function() {
+        const nombre = $("#rv-nombre-product").value.trim() || "Anónimo";
+        const rating = parseInt($("#rv-rating-product").value||"5");
+        const comentario = $("#rv-com-product").value.trim();
+        if(!comentario){ alert("Escribe un comentario."); return; }
+        REVIEWS[cod] ??= [];
+        REVIEWS[cod].push({nombre, rating, comentario});
+        $("#rv-com-product").value = "";
+        pintarReviewsProducto();
+      };
+    }
+
+    if ($("#related-products")) {
+      const relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod).slice(0, 4);
+      $("#related-products").innerHTML = relacionados.length > 0
+        ? relacionados.map(p => `
+          <div class="col-sm-6 col-lg-3">
+            <a href="product.html?cod=${p.cod}" class="text-decoration-none">
+              <div class="card bg-secondary text-light h-100 product-card border border-primary">
+                <img src="${getImgPath(p.img)}" class="card-img-top" alt="${p.nombre}">
+                <div class="card-body text-center">
+                  <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
+                  <span class="d-block">${formateaCLP(p.precio)}</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        `).join('')
+        : "<div class='text-secondary'>No hay productos relacionados.</div>";
+    }
+  }
+});
+
+const comunas = {
+  metropolitana: ["Santiago", "Puente Alto", "Maipú", "Las Condes", "La Florida", "Ñuñoa"],
+  valparaiso: ["Valparaíso", "Viña del Mar", "Quilpué", "Villa Alemana", "Concón"],
+  biobio: ["Concepción", "Talcahuano", "Chiguayante", "Los Ángeles", "San Pedro de la Paz"]
+};
+
+// Escuchar el cambio en el select de región
+document.getElementById("region").addEventListener("change", function() {
+  const comunaSelect = document.getElementById("comuna");
+  const region = this.value;
+
+  // Limpiar comunas anteriores
+  comunaSelect.innerHTML = "<option value=''>Seleccione una comuna</option>";
+
+  // Agregar comunas correspondientes
+  if (region && comunas[region]) {
+    comunas[region].forEach(comuna => {
+      const option = document.createElement("option");
+      option.value = comuna.toLowerCase().replace(/\s+/g, "-");
+      option.textContent = comuna;
+      comunaSelect.appendChild(option);
+    });
+  }
 });
