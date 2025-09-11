@@ -14,8 +14,67 @@ const PRODUCTOS = [
   { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Sensor de alta precisión.", img:"g502-heroe.jpg" },
   { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Superficie amplia + RGB.", img:"mauspad.jpg" },
   { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Personaliza con tu gamer tag.", img:"poleraLevel.png" },
-  { cod:"JM003", cat:"Juegos de Mesa", nombre:"Chino con las meas castañas", precio:150000, desc:"Chino con enormes nueses debajo de su pantalón está desesperado por un pene enorme", img:"yuhui.png"}
+  { cod:"CG002", cat:"Computadores Gamers", nombre:"Pc Gamer", precio:1199990, desc:"Rendimiento de alto nivel en juegos y edicion 3D", img:"pcGamertarro.jpg" },
+  { cod:"negr0", cat:"Negroni", nombre:"Jonathan lillo", precio:9999990, desc:"Rendimiento espectacular en tareas fisicas.", img:"negrito.jpeg" }
+  
 ];
+
+// === UTILS ===
+function formateaCLP(n){ return n.toLocaleString("es-CL")+" CLP"; }
+function getImgPath(filename) { return "../img/" + filename; }
+
+// === CARGA DE PRODUCTO Y RELACIONADOS ===
+document.addEventListener("DOMContentLoaded", function() {
+  // Obtener parámetro cod
+  function getParam(name) {
+    return new URL(window.location.href).searchParams.get(name);
+  }
+  const cod = getParam("cod");
+  if (!cod) return; // No hay código en la URL
+
+  // Buscar el producto principal
+  const prod = PRODUCTOS.find(p => p.cod === cod);
+  if (!prod) {
+    document.getElementById("product-title").textContent = "Producto no encontrado";
+    document.getElementById("product-desc").textContent = "";
+    document.getElementById("main-img").src = "";
+    document.getElementById("product-price").textContent = "";
+    document.getElementById("related-products").innerHTML = "<div class='text-secondary'>No hay productos relacionados.</div>";
+    return;
+  }
+
+  // Mostrar datos del producto principal
+  document.getElementById("main-img").src = getImgPath(prod.img);
+  document.getElementById("main-img").alt = prod.nombre;
+  document.getElementById("product-title").textContent = prod.nombre;
+  document.getElementById("product-price").textContent = formateaCLP(prod.precio);
+  document.getElementById("product-desc").textContent = prod.desc;
+
+  // Mostrar productos relacionados
+  let relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
+  // Si hay menos de 4, rellenar con otros productos
+  if (relacionados.length < 4) {
+    relacionados = [
+      ...relacionados,
+      ...PRODUCTOS.filter(p => p.cod !== prod.cod && !relacionados.includes(p))
+    ].slice(0, 4);
+  }
+  document.getElementById("related-products").innerHTML = relacionados.length > 0
+    ? relacionados.map(p => `
+      <div class="col-sm-6 col-lg-3">
+        <a href="product.html?cod=${p.cod}" class="text-decoration-none">
+          <div class="card bg-secondary text-light h-100 product-card border border-primary">
+            <img src="${getImgPath(p.img)}" class="card-img-top" alt="${p.nombre}">
+            <div class="card-body text-center">
+              <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
+              <span class="d-block">${formateaCLP(p.precio)}</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    `).join('')
+    : "<div class='text-secondary'>No hay productos relacionados.</div>";
+});
 
 function getImgPath(filename) {
   if (window.location.pathname.includes('assets/page/') || window.location.pathname.includes('/page/')) {
@@ -107,6 +166,28 @@ function cardProducto(p){
     </div>
   </div>`;
 }
+function cardProductoSimple(p){
+  const imgPath = getImgPath(p.img);
+  return `
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <div class="card bg-secondary text-light h-100 product-card">
+        <img src="${imgPath}" class="card-img-top" alt="${p.nombre}" onerror="this.src='${imgPath.replace(p.img,'placeholder.webp')}'">
+        <div class="card-body d-flex flex-column justify-content-center align-items-center">
+          <span class="badge bg-primary mb-2">${p.cat}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// Solo para el index.html
+document.addEventListener("DOMContentLoaded", function() {
+  // Solo ejecuta en el index
+  if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
+    const cont = document.getElementById("grid-productos");
+    if (!cont) return;
+    cont.innerHTML = PRODUCTOS.map(p => cardProductoSimple(p)).join("");
+  }
+});
 
 function renderCatalogo(){
   const q=$("#busqueda")?.value||"";
@@ -404,3 +485,49 @@ document.getElementById("region").addEventListener("change", function() {
     });
   }
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", function() {
+    const query = this.value.toLowerCase();
+    // Actualiza el filtro global y vuelve a renderizar
+    // Si usas un filtro adicional, puedes guardar el valor en una variable global
+    window.filtroBusqueda = query;
+    renderCatalogoConBusqueda(query);
+  });
+});
+
+// === Buscador global en header que filtra catálogo de productos ===
+document.addEventListener("DOMContentLoaded", function() {
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", function() {
+    // Activa la sección catálogo al escribir
+    mostrarSeccion('catalogo');
+    renderCatalogo();
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  renderCatalogo();
+
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.addEventListener("input", function() {
+      renderCatalogo();
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+  initFiltros();
+  renderCatalogo();
+  mostrarSeccion("catalogo"); // <-- CAMBIO NECESARIO
+  // resto igual...
+});
+
+

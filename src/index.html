@@ -24,6 +24,12 @@
               <li class="nav-item"><a class="nav-link text-white" href="assets/page/nosotros.html">Nosotros</a></li>
               <li class="nav-item"><a class="nav-link text-white" href="assets/page/blog.html">Blog</a></li>
               <li class="nav-item"><a class="nav-link text-white" href="assets/page/contacto.html">Contacto</a></li>
+              <form class="d-flex" role="search" onsubmit="event.preventDefault();">
+                <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Buscar" id="searchInput">
+                <button class="btn btn-outline-light" type="submit">
+                  <i class="bi bi-search"></i>
+                </button>
+              </form>
             </ul>
           </nav>
           <div class="d-flex align-items-center ms-auto">
@@ -61,6 +67,7 @@
 
     <main class="container my-4 seccion activo" id="catalogo">
       <div class="row g-4" id="grid-productos">
+        <!-- Aquí se insertan los productos dinámicamente -->
       </div>
     </main>
     <main class="container my-4 seccion" id="home">
