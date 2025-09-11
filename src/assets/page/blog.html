@@ -8,9 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../CSS/style.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
 <body>
-
     <header class="navbar-electric py-3">
         <div class="container d-flex justify-content-between align-items-center">
         <a href="../../index.html" class="d-flex align-items-center text-decoration-none me-3">
@@ -27,68 +27,60 @@
             </ul>
         </nav>
         <div class="d-flex align-items-center ms-auto">
-            <span class="fs-5"><i class="bi bi-cart"></i></span>
+            <!-- Icono del carrito y contador -->
+            <a href="carrito.html" class="text-white fs-5" style="text-decoration:none;">
+                <i class="bi bi-cart"></i>
+            </a>
             <span class="text-white ms-2">Carrito (<span id="badge-carrito">0</span>)</span>
         </div>
         </div>
     </header>
 
-  <main class="container pb-5">
-  <h1 class="text-center font-orbitron my-4 py-4 text-white">Noticias de la comunidad</h1>
-  <div class="row g-4 justify-content-center" id="productos-lista">
-  </div>
-</main>
+    <main class="container pb-5">
+      <h1 class="text-center font-orbitron my-4 py-4 text-white">Noticias de la comunidad</h1>
+      <!-- Aquí van tus noticias, NO productos -->
+      <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
+          <div class="row align-items-center flex-md-row flex-column-reverse">
+            <div class="col-md-7 text-md-start text-center">
+              <h2 class="fw-bold font-orbitron text-white mb-2">El impacto de los eSports en la cultura juvenil</h2>
+              <p class="mb-4 text-light">Cómo los eSports pasaron de ser un hobby a convertirse en una industria millonaria.</p>
+            </div>
+            <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
+              <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
+                <img src="../img/cultura_juvenil.png" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
+              </div>
+            </div>
+          </div>
+      </section>
 
-  <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
-    <div class="row align-items-center flex-md-row flex-column-reverse">
-      <div class="col-md-7 text-md-start text-center">
-        <h1 class="fw-bold font-orbitron text-white mb-2">El impacto de los eSports en la cultura juvenil</h1>
-        <p class="mb-4 text-light">Cómo los eSports pasaron de ser un hobby a convertirse en una industria millonaria.</p>
-        <button class="btn btn-neon px-4 py-2 fw-bold" onclick="mostrarSeccion('catalogo')">
-          <i class="bi bi-controller me-2"></i> Ver Caso
-        </button>
-      </div>
-      <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
-        <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
-          <img src="../img/cultura_juvenil.png" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
-        </div>
-      </div>
-    </div>
-  </section>
+      <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
+          <div class="row align-items-center flex-md-row flex-column-reverse">
+            <div class="col-md-7 text-md-start text-center">
+              <h2 class="fw-bold font-orbitron text-white mb-2">Lanzamiento de “Hollow Knight: Silksong” provoca caída de Steam y Xbox</h2>
+              <p class="mb-4 text-light">La alta demanda por el esperado videojuego de Team Cherry colapsó momentáneamente los servidores de las principales tiendas online, afectando a miles de jugadores alrededor del mundo.</p>
+            </div>
+            <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
+              <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
+                <img src="../img/hollow.png" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
+              </div>
+            </div>
+          </div>
+      </section>
 
-  <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
-    <div class="row align-items-center flex-md-row flex-column-reverse">
-      <div class="col-md-7 text-md-start text-center">
-        <h1 class="fw-bold font-orbitron text-white mb-2">Lanzamiento de “Hollow Knight: Silksong” provoca caída de Steam y Xbox</h1>
-        <p class="mb-4 text-light">La alta demanda por el esperado videojuego de Team Cherry colapsó momentáneamente los servidores de las principales tiendas online, afectando a miles de jugadores alrededor del mundo.</p>
-        <button class="btn btn-neon px-4 py-2 fw-bold" onclick="mostrarSeccion('catalogo')">
-          <i class="bi bi-controller me-2"></i> ver Caso
-        </button>
-      </div>
-      <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
-        <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
-          <img src="../img/hollow.png" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
-    <div class="row align-items-center flex-md-row flex-column-reverse">
-      <div class="col-md-7 text-md-start text-center">
-        <h1 class="fw-bold font-orbitron text-white mb-2">El tan esperado juego Little Nightmares III, pronto <llegara class="x"></llegara></h1>
-        <p class="mb-4 text-light">¡La pesadilla llegará a su fin este otoño! Little Nightmares III, un videojuego desarrollado por Supermassive Games y publicado por Bandai Namco, llegará a PC, PS4, PS5, Xbox One, Xbox Series y Nintendo Switch el 10 de octubre de 2025.</p>
-        <button class="btn btn-neon px-4 py-2 fw-bold" onclick="mostrarSeccion('catalogo')">
-          <i class="bi bi-controller me-2"></i> ver Caso
-        </button>
-      </div>
-      <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
-        <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
-          <img src="../img/little.jpg" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
-        </div>
-      </div>
-    </div>
-  </section>
+      <section class="container hero-wireframe my-4 py-4 rounded-4 bg-secondary text-white">
+          <div class="row align-items-center flex-md-row flex-column-reverse">
+            <div class="col-md-7 text-md-start text-center">
+              <h2 class="fw-bold font-orbitron text-white mb-2">El tan esperado juego Little Nightmares III, pronto llegará</h2>
+              <p class="mb-4 text-light">¡La pesadilla llegará a su fin este otoño! Little Nightmares III, un videojuego desarrollado por Supermassive Games y publicado por Bandai Namco, llegará a PC, PS4, PS5, Xbox One, Xbox Series y Nintendo Switch el 10 de octubre de 2025.</p>
+            </div>
+            <div class="col-md-5 d-flex justify-content-md-end justify-content-center align-items-center mb-3 mb-md-0">
+              <div class="hero-img-wireframe bg-dark border border-2 border-primary rounded-4 p-2 d-flex justify-content-center align-items-center">
+                <img src="../img/little.jpg" alt="Hero Image" class="img-fluid rounded-4 hero-img-custom">
+              </div>
+            </div>
+          </div>
+      </section>
+    </main>
 
     <footer class="bg-dark border-top border-secondary py-3 mt-5 text-white">
         <div class="container d-flex flex-wrap justify-content-between align-items-center">
@@ -115,8 +107,7 @@
         <div class="text-center mt-3 text-secondary"><small>© 2025 Level-Up Gamer — Despachos a todo Chile</small></div>
     </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="src/js/scripts.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="../js/funciones.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

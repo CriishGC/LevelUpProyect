@@ -1,250 +1,85 @@
+// CATEGORÍAS Y PRODUCTOS
 const CATEGORIAS = [
   "Juegos de Mesa","Accesorios","Consolas","Computadores Gamers",
   "Sillas Gamers","Mouse","Mousepad","Poleras Personalizadas","Polerones Gamers Personalizados"
 ];
 
 const PRODUCTOS = [
-  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Juego de estrategia (3-4 jugadores).", img:"catan2.jpg" },
-  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Colocación de losetas (2-5 jugadores).", img:"carcassonne.jpg" },
-  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Botones mapeables y gran ergonomía.", img:"xbox_controller.webp" },
-  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Sonido envolvente y mic desmontable.", img:"hyperx_cloud_ii_red_1_main.webp" },
-  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"Next-gen con SSD ultrarrápido.", img:"ps5.webp" },
-  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Rendimiento de alto nivel.", img:"rog_strix.jpg" },
-  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Ergonómica y ajustable.", img:"sillageimer.jpg" },
-  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Sensor de alta precisión.", img:"g502-heroe.jpg" },
-  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Superficie amplia + RGB.", img:"mauspad.jpg" },
-  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Personaliza con tu gamer tag.", img:"poleraLevel.png" },
-  { cod:"CG002", cat:"Computadores Gamers", nombre:"Pc Gamer", precio:1199990, desc:"Rendimiento de alto nivel en juegos y edicion 3D", img:"pcGamertarro.jpg" },
-  { cod:"negr0", cat:"Negroni", nombre:"Jonathan lillo", precio:9999990, desc:"Rendimiento espectacular en tareas fisicas.", img:"negrito.jpeg" }
-  
+  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Un clásico juego de estrategia donde los jugadores compiten por colonizar y expandirse en la isla de Catan. Ideal para 3-4 jugadores y perfecto para noches de juego en familia o con amigos.", img:"catan2.jpg" },
+  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Un juego de colocación de fichas donde los jugadores construyen el paisaje alrededor de la fortaleza medieval de Carcassonne. Ideal para 2-5 jugadores y fácil de aprender.", img:"carcassonne.jpg" },
+  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Ofrece una experiencia de juego cómoda con botones mapeables y una respuesta táctil mejorada. Compatible con consolas Xbox y PC.", img:"xbox_controller.webp" },
+  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Proporcionan un sonido envolvente de calidad con un micrófono desmontable y almohadillas de espuma viscoelástica para mayor comodidad durante largas sesiones de juego.", img:"hyperx_cloud_ii_red_1_main.webp" },
+  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"La consola de última generación de Sony, que ofrece gráficos impresionantes y tiempos de carga ultrarrápidos para una experiencia de juego inmersiva.", img:"ps5.webp" },
+  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Un potente equipo diseñado para los gamers más exigentes, equipado con los últimos componentes para ofrecer un rendimiento excepcional en cualquier juego.", img:"rog_strix.jpg" },
+  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Diseñada para el máximo confort, esta silla ofrece un soporte ergonómico y personalización ajustable para sesiones de juego prolongadas.", img:"sillageimer.jpg" },
+  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Con sensor de alta precisión y botones personalizables, este mouse es ideal para gamers que buscan un control preciso y personalización.", img:"g502-heroe.jpg" },
+  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Ofrece un área de juego amplia con iluminación RGB personalizable, asegurando una superficie suave y uniforme para el movimiento del mouse.", img:"mauspad.jpg" },
+  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Una camiseta cómoda y estilizada, con la posibilidad de personalizarla con tu gamer tag o diseño favorito.", img:"poleraLevel.png" }
 ];
 
-// === UTILS ===
+// UTILS
 function formateaCLP(n){ return n.toLocaleString("es-CL")+" CLP"; }
 function getImgPath(filename) { return "../img/" + filename; }
+const $ = sel => document.querySelector(sel);
+const $$ = sel => document.querySelectorAll(sel);
 
-// === CARGA DE PRODUCTO Y RELACIONADOS ===
-document.addEventListener("DOMContentLoaded", function() {
-  // Obtener parámetro cod
-  function getParam(name) {
-    return new URL(window.location.href).searchParams.get(name);
-  }
-  const cod = getParam("cod");
-  if (!cod) return; // No hay código en la URL
-
-  // Buscar el producto principal
-  const prod = PRODUCTOS.find(p => p.cod === cod);
-  if (!prod) {
-    document.getElementById("product-title").textContent = "Producto no encontrado";
-    document.getElementById("product-desc").textContent = "";
-    document.getElementById("main-img").src = "";
-    document.getElementById("product-price").textContent = "";
-    document.getElementById("related-products").innerHTML = "<div class='text-secondary'>No hay productos relacionados.</div>";
-    return;
-  }
-
-  // Mostrar datos del producto principal
-  document.getElementById("main-img").src = getImgPath(prod.img);
-  document.getElementById("main-img").alt = prod.nombre;
-  document.getElementById("product-title").textContent = prod.nombre;
-  document.getElementById("product-price").textContent = formateaCLP(prod.precio);
-  document.getElementById("product-desc").textContent = prod.desc;
-
-  // Mostrar productos relacionados
-  let relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
-  // Si hay menos de 4, rellenar con otros productos
-  if (relacionados.length < 4) {
-    relacionados = [
-      ...relacionados,
-      ...PRODUCTOS.filter(p => p.cod !== prod.cod && !relacionados.includes(p))
-    ].slice(0, 4);
-  }
-  document.getElementById("related-products").innerHTML = relacionados.length > 0
-    ? relacionados.map(p => `
-      <div class="col-sm-6 col-lg-3">
-        <a href="product.html?cod=${p.cod}" class="text-decoration-none">
-          <div class="card bg-secondary text-light h-100 product-card border border-primary">
-            <img src="${getImgPath(p.img)}" class="card-img-top" alt="${p.nombre}">
-            <div class="card-body text-center">
-              <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
-              <span class="d-block">${formateaCLP(p.precio)}</span>
-            </div>
-          </div>
-        </a>
-      </div>
-    `).join('')
-    : "<div class='text-secondary'>No hay productos relacionados.</div>";
-});
-
-function getImgPath(filename) {
-  if (window.location.pathname.includes('assets/page/') || window.location.pathname.includes('/page/')) {
-    return '../img/' + filename;
-  }
-  return 'assets/img/' + filename;
-}
-
-const REVIEWS = {}; // { cod: [ {nombre, rating, comentario} ] }
+// ESTADO GLOBAL
+const REVIEWS = {};
 const estado = {
-  usuario: {
-    nombre: "", correo: "", nacimiento: "", referido: "",
-    esDuoc: false, puntos: 0, nivel: "Bronce"
-  },
+  usuario: { nombre: "", correo: "", nacimiento: "", referido: "", esDuoc: false, puntos: 0, nivel: "Bronce" },
   carrito: [] // [{cod,nombre,precio,qty}]
 };
 
-const $ = (sel)=>document.querySelector(sel);
-const $$ = (sel)=>document.querySelectorAll(sel);
-
-function formateaCLP(n){ return n.toLocaleString("es-CL")+" CLP"; }
-function edadDesde(fechaStr){
-  if(!fechaStr) return 0;
-  const hoy=new Date(), f=new Date(fechaStr);
-  let e=hoy.getFullYear()-f.getFullYear();
-  const m=hoy.getMonth()-f.getMonth();
-  if(m<0 || (m===0 && hoy.getDate()<f.getDate())) e--;
-  return e;
+// ===== CARRITO PERSISTENTE multi-página =====
+function cargarCarrito() {
+  try {
+    const data = localStorage.getItem("carrito");
+    estado.carrito = data ? JSON.parse(data) : [];
+  } catch(e) { estado.carrito = []; }
 }
-function calcularNivel(puntos){
-  if(puntos>=500) return "Diamante";
-  if(puntos>=250) return "Platino";
-  if(puntos>=150) return "Oro";
-  if(puntos>=75)  return "Plata";
-  return "Bronce";
+function guardarCarrito() {
+  localStorage.setItem("carrito", JSON.stringify(estado.carrito));
 }
-
-function mostrarSeccion(id){
-  $$(".seccion").forEach(s=>s.classList.remove("activo"));
-  const target = $("#"+id) || $("#home");
-  target.classList.add("activo");
-  if(id==="catalogo") renderCatalogo();
-  if(id==="carrito")  renderCarrito();
-  if(id==="perfil")   pintarEstadoPerfil();
+function actualizarBadgeCarrito() {
+  cargarCarrito();
+  const totalUnidades = estado.carrito.reduce((a,i)=>a+i.qty,0);
+  const badge = $("#badge-carrito");
+  if (badge) badge.textContent = totalUnidades;
 }
-
-function initFiltros(){
-  const sel=$("#filtro-categoria");
-  if (!sel) return;
-  if(sel.options.length > 1) return;
-  CATEGORIAS.forEach(c=>{
-    const opt=document.createElement("option");
-    opt.value=c; opt.textContent=c; sel.appendChild(opt);
-  });
-}
-
-function coincideProducto(p, q, cat, min, max){
-  const matchTexto = !q || (p.nombre+" "+p.desc).toLowerCase().includes(q.toLowerCase());
-  const matchCat = !cat || p.cat===cat;
-  const matchMin = !min || p.precio>=min;
-  const matchMax = !max || p.precio<=max;
-  return matchTexto && matchCat && matchMin && matchMax;
-}
-
-function cardProducto(p){
-  const imgPath = getImgPath(p.img);
-  const codShare = encodeURIComponent(`${p.nombre} en Level-Up Gamer`);
-  const urlShare = encodeURIComponent("#");
-  return `
-  <div class="col-sm-6 col-md-4 col-lg-3">
-    <div class="card bg-secondary text-light h-100 product-card">
-      <img src="${imgPath}" class="card-img-top" alt="${p.nombre}" onerror="this.src='${imgPath.replace(p.img,'placeholder.webp')}'">
-      <div class="card-body d-flex flex-column">
-        <h5 class="card-title">${p.nombre}</h5>
-        <span class="badge bg-primary mb-2">${p.cat}</span>
-        <p class="card-text">${p.desc}</p>
-        <p class="precio fw-bold mb-2">${formateaCLP(p.precio)}</p>
-        <div class="mt-auto d-grid gap-2">
-          <button class="btn btn-success" onclick="agregarAlCarrito('${p.cod}')">Agregar</button>
-          <a class="btn btn-outline-light" href="product.html?cod=${p.cod}">Detalles / Reseñas</a>
-          <div class="d-flex gap-2 justify-content-center">
-            <a class="btn btn-sm btn-outline-light" target="_blank" rel="noopener"
-               href="https://www.facebook.com/sharer/sharer.php?u=${urlShare}&quote=${codShare}">Facebook</a>
-            <a class="btn btn-sm btn-outline-light" target="_blank" rel="noopener"
-               href="https://twitter.com/intent/tweet?text=${codShare}&url=${urlShare}">X</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-function cardProductoSimple(p){
-  const imgPath = getImgPath(p.img);
-  return `
-    <div class="col-sm-6 col-md-4 col-lg-3">
-      <div class="card bg-secondary text-light h-100 product-card">
-        <img src="${imgPath}" class="card-img-top" alt="${p.nombre}" onerror="this.src='${imgPath.replace(p.img,'placeholder.webp')}'">
-        <div class="card-body d-flex flex-column justify-content-center align-items-center">
-          <span class="badge bg-primary mb-2">${p.cat}</span>
-        </div>
-      </div>
-    </div>`;
-}
-
-// Solo para el index.html
-document.addEventListener("DOMContentLoaded", function() {
-  // Solo ejecuta en el index
-  if (window.location.pathname.endsWith("index.html") || window.location.pathname === "/") {
-    const cont = document.getElementById("grid-productos");
-    if (!cont) return;
-    cont.innerHTML = PRODUCTOS.map(p => cardProductoSimple(p)).join("");
-  }
-});
-
-function renderCatalogo(){
-  const q=$("#busqueda")?.value||"";
-  const cat=$("#filtro-categoria")?.value||"";
-  const min=parseInt($("#filtro-min")?.value||"");
-  const max=parseInt($("#filtro-max")?.value||"");
-  const cont=$("#grid-productos") || $("#productos-lista");
-  if (!cont) return;
-  cont.innerHTML = PRODUCTOS
-    .filter(p=>coincideProducto(p,q,cat,min,max))
-    .map(p=>cardProducto(p))
-    .join("") || `<div class="text-center text-muted">Sin resultados</div>`;
-}
-
-function limpiarFiltros(){
-  if($("#busqueda")) $("#busqueda").value="";
-  if($("#filtro-categoria")) $("#filtro-categoria").value="";
-  if($("#filtro-min")) $("#filtro-min").value="";
-  if($("#filtro-max")) $("#filtro-max").value="";
-  renderCatalogo();
-}
-
 function agregarAlCarrito(cod){
+  cargarCarrito();
   const prod = PRODUCTOS.find(p=>p.cod===cod);
   if(!prod) return;
   const item = estado.carrito.find(i=>i.cod===cod);
   if(item) item.qty++;
   else estado.carrito.push({ cod: prod.cod, nombre: prod.nombre, precio: prod.precio, qty: 1 });
+  guardarCarrito();
   actualizarBadgeCarrito();
-  renderCarrito();
-  mostrarSeccion("carrito");
+  if (typeof renderCarrito === "function") renderCarrito();
 }
-
 function quitarDelCarrito(idx){
+  cargarCarrito();
   estado.carrito.splice(idx,1);
+  guardarCarrito();
   actualizarBadgeCarrito();
-  renderCarrito();
+  if (typeof renderCarrito === "function") renderCarrito();
 }
-
 function cambiarQty(idx, delta){
+  cargarCarrito();
   const it = estado.carrito[idx];
   if(!it) return;
   it.qty = Math.max(1, it.qty + delta);
-  renderCarrito();
+  guardarCarrito();
+  if (typeof renderCarrito === "function") renderCarrito();
+  actualizarBadgeCarrito();
 }
-
-function actualizarBadgeCarrito(){
-  const totalUnidades = estado.carrito.reduce((a,i)=>a+i.qty,0);
-  const badge = $("#badge-carrito");
-  if (badge) badge.textContent = totalUnidades;
-}
-
 function renderCarrito(){
+  cargarCarrito();
   const list=$("#carrito-lista");
   if(!list) return;
   if(estado.carrito.length===0){
     list.innerHTML = `<div class="list-group-item bg-dark text-light">Tu carrito está vacío.</div>`;
+    if ($("#total")) $("#total").textContent = "$ 0";
   }else{
     list.innerHTML = estado.carrito.map((it,idx)=>`
       <div class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
@@ -261,273 +96,177 @@ function renderCarrito(){
         </div>
       </div>
     `).join("");
+    actualizarTotales();
   }
-  actualizarTotales();
+  actualizarBadgeCarrito();
 }
-
 function actualizarTotales(){
   const subtotal = estado.carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  const esDuoc = estado.usuario.esDuoc;
-  const desc = esDuoc ? Math.round(subtotal*0.20) : 0;
-
-  const rate = 10;
-  const factor = 10;
-  const disponibles = estado.usuario.puntos;
-  if ($("#puntos-disponibles")) $("#puntos-disponibles").textContent = disponibles;
-
-  let canje = parseInt($("#canje-puntos")?.value||0);
-  if(isNaN(canje) || canje<0) canje = 0;
-  canje = Math.min(canje - (canje%factor), disponibles);
-  if ($("#canje-puntos")) $("#canje-puntos").value = canje;
-
-  const descuentoPuntos = (canje/rate)*100;
-  const total = Math.max(0, subtotal - desc - descuentoPuntos);
-
-  if ($("#subtotal")) $("#subtotal").textContent = formateaCLP(subtotal);
-  if ($("#descuento")) $("#descuento").textContent = formateaCLP(desc);
-  if ($("#linea-descuento")) $("#linea-descuento").style.display = esDuoc && subtotal>0 ? "block":"none";
-  if ($("#total")) $("#total").textContent = formateaCLP(total);
+  // ... resto igual ...
+  if ($("#total")) $("#total").textContent = formateaCLP(subtotal);
 }
 
-function checkout(){
-  if(estado.carrito.length===0){ alert("Tu carrito está vacío."); return; }
-  const canje = parseInt($("#canje-puntos")?.value||0) || 0;
-  estado.usuario.puntos = Math.max(0, estado.usuario.puntos - canje);
-
-  const subtotal = estado.carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  const puntosGanados = Math.floor(subtotal / 1000);
-  estado.usuario.puntos += puntosGanados;
-  estado.usuario.nivel = calcularNivel(estado.usuario.puntos);
-
-  estado.carrito = [];
-  actualizarBadgeCarrito();
-  renderCarrito();
-  pintarEstadoPerfil();
-
-  alert(`Compra realizada 🎉\nGanaste ${puntosGanados} puntos LevelUp.`);
-}
-
-function guardarPerfil(){
-  const nombre = $("#perfil-nombre")?.value.trim();
-  const correo = $("#perfil-correo")?.value.trim();
-  const nacimiento = $("#perfil-nacimiento")?.value;
-  const referido = $("#perfil-referido")?.value.trim();
-
-  const alerta = $("#alerta-perfil");
-  if (alerta) alerta.classList.add("d-none");
-
-  if(!nombre || !correo || !nacimiento){
-    if (alerta) {
-      alerta.className = "alert alert-warning mt-3";
-      alerta.textContent = "Completa nombre, correo y fecha de nacimiento.";
-    }
-    return;
+// MULTI-PESTAÑA: actualiza badge y carrito en todas las pestañas
+window.addEventListener("storage", function(e) {
+  if (e.key === "carrito") {
+    actualizarBadgeCarrito();
+    if (typeof renderCarrito === "function") renderCarrito();
   }
+});
 
-  if(edadDesde(nacimiento) < 18){
-    if (alerta) {
-      alerta.className = "alert alert-danger mt-3";
-      alerta.textContent = "Debes ser mayor de 18 años para registrarte.";
-    }
-    return;
-  }
-
-  const esDuoc = /@duoc\.cl$/i.test(correo);
-
-  let puntosExtra = 0;
-  if(referido){
-    puntosExtra = 25;
-    estado.usuario.puntos += puntosExtra;
-  }
-
-  estado.usuario = {
-    ...estado.usuario,
-    nombre, correo, nacimiento, referido, esDuoc,
-    nivel: calcularNivel(estado.usuario.puntos)
-  };
-
-  if (alerta) {
-    alerta.className = "alert alert-success mt-3";
-    alerta.innerHTML = `Datos guardados. ${esDuoc ? "Descuento DUOC 20% activo. " : ""}${puntosExtra?`+${puntosExtra} Puntos por referido.`:""}`;
-  }
-
-  pintarEstadoPerfil();
-  refrescarBeneficios();
-}
-
-function pintarEstadoPerfil(){
-  if ($("#estado-duoc")) $("#estado-duoc").textContent = estado.usuario.esDuoc ? "Sí (20%)" : "No";
-  if ($("#perfil-puntos")) $("#perfil-puntos").textContent = estado.usuario.puntos;
-  if ($("#perfil-nivel")) $("#perfil-nivel").textContent = estado.usuario.nivel;
-}
-
-function refrescarBeneficios(){
-  actualizarTotales();
-}
-
-function guardarReview(cod){
-  const nombre = $(`#rv-nombre-${cod}`).value.trim() || "Anónimo";
-  const rating = parseInt($(`#rv-rating-${cod}`).value||"5");
-  const comentario = $(`#rv-com-${cod}`).value.trim();
-  if(!comentario){ alert("Escribe un comentario."); return; }
-  REVIEWS[cod] ??= [];
-  REVIEWS[cod].push({nombre, rating, comentario});
-  $(`#rv-com-${cod}`).value = "";
-  pintarReviews(cod);
-}
-
-function pintarReviews(cod){
-  const cont = $(`#reviews-${cod}`);
-  const lista = REVIEWS[cod]||[];
-  if(!cont) return;
-  cont.innerHTML = lista.length
-    ? lista.map(r=>`<div class="review"><strong>${r.nombre}</strong> — ${"★".repeat(r.rating)}<br>${r.comentario}</div>`).join("")
-    : `<div class="text-muted">Aún no hay reseñas.</div>`;
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-  initFiltros();
-  renderCatalogo();
-  mostrarSeccion("home");
-
+// ===== PRODUCTO DETALLE Y RELACIONADOS =====
+function renderDetalleProducto() {
   function getParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
+    return new URL(window.location.href).searchParams.get(name);
   }
   const cod = getParam("cod");
-  if (cod) {
-    const prod = PRODUCTOS.find(p => p.cod === cod);
-    if (!prod) return;
-    if ($("#breadcrumb-cat")) $("#breadcrumb-cat").textContent = prod.cat;
-    if ($("#breadcrumb-title")) $("#breadcrumb-title").textContent = prod.nombre;
-    if ($("#main-img")) $("#main-img").src = getImgPath(prod.img);
-    if ($("#product-title")) $("#product-title").textContent = prod.nombre;
-    if ($("#product-price")) $("#product-price").textContent = formateaCLP(prod.precio);
-    if ($("#product-desc")) $("#product-desc").textContent = prod.desc;
-    if ($("#miniaturas")) $("#miniaturas").innerHTML = `<img src="${getImgPath(prod.img)}" class="img-thumbnail border border-primary" style="width:60px; height:60px; object-fit:cover;">`;
-
-    if ($("#add-to-cart")) {
-      $("#add-to-cart").onclick = function() {
-        const qty = parseInt($("#qty").value) || 1;
-        for (let i = 0; i < qty; i++) agregarAlCarrito(prod.cod);
-      };
-    }
-
-    function pintarReviewsProducto() {
-      const cont = $("#reviews-product");
-      const lista = REVIEWS[cod]||[];
-      if(!cont) return;
-      cont.innerHTML = lista.length
-        ? lista.map(r=>
-          `<div class="review mb-2">
-            <strong>${r.nombre}</strong> — ${"★".repeat(r.rating)}<br>${r.comentario}
-          </div>`
-        ).join("")
-        : `<div class="text-muted">Aún no hay reseñas.</div>`;
-    }
-    pintarReviewsProducto();
-
-    if ($("#btn-review")) {
-      $("#btn-review").onclick = function() {
-        const nombre = $("#rv-nombre-product").value.trim() || "Anónimo";
-        const rating = parseInt($("#rv-rating-product").value||"5");
-        const comentario = $("#rv-com-product").value.trim();
-        if(!comentario){ alert("Escribe un comentario."); return; }
-        REVIEWS[cod] ??= [];
-        REVIEWS[cod].push({nombre, rating, comentario});
-        $("#rv-com-product").value = "";
-        pintarReviewsProducto();
-      };
-    }
-
-    if ($("#related-products")) {
-      const relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod).slice(0, 4);
-      $("#related-products").innerHTML = relacionados.length > 0
-        ? relacionados.map(p => `
-          <div class="col-sm-6 col-lg-3">
-            <a href="product.html?cod=${p.cod}" class="text-decoration-none">
-              <div class="card bg-secondary text-light h-100 product-card border border-primary">
-                <img src="${getImgPath(p.img)}" class="card-img-top" alt="${p.nombre}">
-                <div class="card-body text-center">
-                  <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
-                  <span class="d-block">${formateaCLP(p.precio)}</span>
-                </div>
-              </div>
-            </a>
+  if (!cod || typeof PRODUCTOS === "undefined") return;
+  const prod = PRODUCTOS.find(p => p.cod === cod);
+  if (!prod) return;
+  $("#main-img").src = getImgPath(prod.img);
+  $("#main-img").alt = prod.nombre;
+  $("#product-title").textContent = prod.nombre;
+  $("#product-price").textContent = formateaCLP(prod.precio);
+  $("#product-desc").textContent = prod.desc;
+  if ($("#add-to-cart")) {
+    $("#add-to-cart").onclick = function() {
+      const qty = parseInt($("#qty").value) || 1;
+      for (let i = 0; i < qty; i++) agregarAlCarrito(prod.cod);
+      actualizarBadgeCarrito();
+    };
+  }
+  let relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
+  if (relacionados.length < 4) {
+    relacionados = [
+      ...relacionados,
+      ...PRODUCTOS.filter(p => p.cod !== prod.cod && !relacionados.includes(p))
+    ].slice(0, 4);
+  }
+  $("#related-products").innerHTML = relacionados.length > 0
+    ? relacionados.map(p => `
+      <div class="col-sm-6 col-lg-3">
+        <a href="product.html?cod=${p.cod}" class="text-decoration-none">
+          <div class="card bg-secondary text-light h-100 product-card border border-primary">
+            <img src="${getImgPath(p.img)}" class="card-img-top" alt="${p.nombre}">
+            <div class="card-body text-center">
+              <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
+              <span class="d-block">${formateaCLP(p.precio)}</span>
+            </div>
           </div>
-        `).join('')
-        : "<div class='text-secondary'>No hay productos relacionados.</div>";
-    }
-  }
-});
+        </a>
+      </div>
+    `).join('')
+    : "<div class='text-secondary'>No hay productos relacionados.</div>";
+  actualizarBadgeCarrito();
+}
 
-const comunas = {
-  metropolitana: ["Santiago", "Puente Alto", "Maipú", "Las Condes", "La Florida", "Ñuñoa"],
-  valparaiso: ["Valparaíso", "Viña del Mar", "Quilpué", "Villa Alemana", "Concón"],
-  biobio: ["Concepción", "Talcahuano", "Chiguayante", "Los Ángeles", "San Pedro de la Paz"]
-};
-
-// Escuchar el cambio en el select de región
-document.getElementById("region").addEventListener("change", function() {
-  const comunaSelect = document.getElementById("comuna");
-  const region = this.value;
-
-  // Limpiar comunas anteriores
-  comunaSelect.innerHTML = "<option value=''>Seleccione una comuna</option>";
-
-  // Agregar comunas correspondientes
-  if (region && comunas[region]) {
-    comunas[region].forEach(comuna => {
-      const option = document.createElement("option");
-      option.value = comuna.toLowerCase().replace(/\s+/g, "-");
-      option.textContent = comuna;
-      comunaSelect.appendChild(option);
-    });
-  }
-});
-
+// INIT EN TODAS LAS PÁGINAS
 document.addEventListener("DOMContentLoaded", function() {
-  const searchInput = document.getElementById("searchInput");
-  if (!searchInput) return;
-
-  searchInput.addEventListener("input", function() {
-    const query = this.value.toLowerCase();
-    // Actualiza el filtro global y vuelve a renderizar
-    // Si usas un filtro adicional, puedes guardar el valor en una variable global
-    window.filtroBusqueda = query;
-    renderCatalogoConBusqueda(query);
-  });
+  cargarCarrito();
+  actualizarBadgeCarrito();
+  if (typeof renderCarrito === "function") renderCarrito();
 });
 
-// === Buscador global en header que filtra catálogo de productos ===
-document.addEventListener("DOMContentLoaded", function() {
-  const searchInput = document.getElementById("searchInput");
-  if (!searchInput) return;
-
-  searchInput.addEventListener("input", function() {
-    // Activa la sección catálogo al escribir
-    mostrarSeccion('catalogo');
-    renderCatalogo();
-  });
-});
-
+function renderCatalogo(){
+  const cont = document.getElementById("productos-lista");
+  if (!cont) return;
+  cont.innerHTML = PRODUCTOS
+    .map(p => `
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card bg-secondary text-light h-100 product-card">
+          <img src="../img/${p.img}" class="card-img-top" alt="${p.nombre}">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">${p.nombre}</h5>
+            <span class="badge bg-primary mb-2">${p.cat}</span>
+            <p class="precio fw-bold mb-2">${formateaCLP(p.precio)}</p>
+            <div class="mt-auto d-grid gap-2">
+              <button class="btn btn-success" onclick="agregarAlCarrito('${p.cod}')">Agregar</button>
+              <a class="btn btn-outline-light" href="product.html?cod=${p.cod}">Detalles</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+}
 
 document.addEventListener("DOMContentLoaded", function() {
   renderCatalogo();
-
-  const searchInput = document.getElementById("searchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", function() {
-      renderCatalogo();
-    });
-  }
+  actualizarBadgeCarrito();
 });
 
+function renderIndexCatalogo() {
+  const cont = document.getElementById("grid-productos");
+  if (!cont) return;
+  cont.innerHTML = PRODUCTOS
+    .map(p => `
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card bg-secondary text-light h-100 product-card">
+          <img src="assets/img/${p.img}" class="card-img-top" alt="${p.nombre}">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center">
+            <span class="badge bg-primary mb-2">${p.cat}</span>
+            <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
+            <span class="d-block">${formateaCLP(p.precio)}</span>
+            <a class="btn btn-outline-light mt-2" href="assets/page/product.html?cod=${p.cod}">Ver más</a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+}
+
+// Este bloque asegura que se renderice el catálogo en el index y actualice el badge del carrito
 document.addEventListener("DOMContentLoaded", function() {
-  initFiltros();
-  renderCatalogo();
-  mostrarSeccion("catalogo"); // <-- CAMBIO NECESARIO
-  // resto igual...
+  // Solo renderiza si existe el div en la página
+  if (document.getElementById("grid-productos")) {
+    renderIndexCatalogo();
+  }
+  actualizarBadgeCarrito();
 });
 
+function renderCarrito() {
+  cargarCarrito();
+  const list = $("#carrito-lista");
+  if(!list) return;
+  if(estado.carrito.length === 0){
+    list.innerHTML = `<div class="list-group-item bg-dark text-light">Tu carrito está vacío.</div>`;
+    if ($("#total")) $("#total").textContent = "$ 0";
+  } else {
+    list.innerHTML = estado.carrito.map((it, idx) => {
+      const prod = PRODUCTOS.find(p => p.cod === it.cod);
+      const imgSrc = prod ? getImgPath(prod.img) : "../img/placeholder.webp";
+      return `
+        <div class="list-group-item bg-dark text-light d-flex flex-wrap align-items-center justify-content-between py-3 mb-3" style="border-radius: 12px; box-shadow: 0 2px 12px #2223;">
+          <div class="d-flex align-items-center gap-4">
+            <img src="${imgSrc}" alt="${it.nombre}" style="width:80px;height:80px;object-fit:cover;" class="rounded border border-primary shadow-sm me-3">
+            <div>
+              <strong class="fs-5">${it.nombre}</strong><br>
+              <span class="badge bg-primary my-1">${prod ? prod.cat : ''}</span><br>
+              <small class="text-secondary">${formateaCLP(it.precio)} c/u</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+            <button class="btn btn-sm btn-outline-light" onclick="cambiarQty(${idx},-1)">−</button>
+            <span class="fs-5 px-2">${it.qty}</span>
+            <button class="btn btn-sm btn-outline-light" onclick="cambiarQty(${idx},1)">+</button>
+            <span class="fw-bold fs-5 px-3">${formateaCLP(it.precio * it.qty)}</span>
+            <button class="btn btn-sm btn-danger" onclick="quitarDelCarrito(${idx})">X</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+    actualizarTotales();
+  }
+  actualizarBadgeCarrito();
+}
 
+function checkout() {
+  cargarCarrito();
+  if (estado.carrito.length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+  alert("🎉 ¡Muchas gracias por comprar en nuestra página!\n\nTe esperamos nuevamente en Level-Up Gamer.");
+  estado.carrito = [];
+  guardarCarrito();
+  renderCarrito();
+  actualizarBadgeCarrito();
+}
