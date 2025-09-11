@@ -270,3 +270,80 @@ function checkout() {
   renderCarrito();
   actualizarBadgeCarrito();
 }
+
+// Devuelve true si el producto coincide con los filtros
+function coincideProducto(p, q, cat, min, max) {
+  const texto = (q || "").trim().toLowerCase();
+  if (texto && !(
+    p.nombre?.toLowerCase().includes(texto) ||
+    p.desc?.toLowerCase().includes(texto)
+  )) return false;
+  if (cat && p.cat !== cat) return false;
+  if (!isNaN(min) && min && p.precio < min) return false;
+  if (!isNaN(max) && max && p.precio > max) return false;
+  return true;
+}
+
+// Devuelve el HTML de una tarjeta de producto
+function cardProducto(p) {
+  return `
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <div class="card bg-secondary text-light h-100 product-card">
+        <img src="../img/${p.img}" class="card-img-top" alt="${p.nombre}">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">${p.nombre}</h5>
+          <span class="badge bg-primary mb-2">${p.cat}</span>
+          <p class="precio fw-bold mb-2">${formateaCLP(p.precio)}</p>
+          <div class="mt-auto d-grid gap-2">
+            <button class="btn btn-success" onclick="agregarAlCarrito('${p.cod}')">Agregar</button>
+            <a class="btn btn-outline-light" href="product.html?cod=${p.cod}">Detalles</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Renderiza el catálogo filtrado
+function renderCatalogo(){
+  const q = document.getElementById("busqueda")?.value || "";
+  const cat = document.getElementById("filtro-categoria")?.value || "";
+  const min = parseInt(document.getElementById("filtro-min")?.value) || NaN;
+  const max = parseInt(document.getElementById("filtro-max")?.value) || NaN;
+  const cont = document.getElementById("productos-lista");
+  if (!cont) return;
+  const filtrados = PRODUCTOS.filter(p => coincideProducto(p, q, cat, min, max));
+  cont.innerHTML = filtrados.length
+    ? filtrados.map(cardProducto).join("")
+    : `<div class="text-center text-muted">Sin resultados</div>`;
+}
+
+// Inicializa las opciones de categorías
+function initFiltros(){
+  const sel = document.getElementById("filtro-categoria");
+  if (!sel) return;
+  if(sel.options.length > 1) return;
+  CATEGORIAS.forEach(c=>{
+    const opt = document.createElement("option");
+    opt.value = c; opt.textContent = c; sel.appendChild(opt);
+  });
+}
+
+// Limpia filtros y muestra todo
+function limpiarFiltros(){
+  if(document.getElementById("busqueda")) document.getElementById("busqueda").value = "";
+  if(document.getElementById("filtro-categoria")) document.getElementById("filtro-categoria").value = "";
+  if(document.getElementById("filtro-min")) document.getElementById("filtro-min").value = "";
+  if(document.getElementById("filtro-max")) document.getElementById("filtro-max").value = "";
+  renderCatalogo();
+}
+
+// Inicializa filtros y agrega eventos
+document.addEventListener("DOMContentLoaded", function() {
+  initFiltros();
+  renderCatalogo();
+  ["busqueda", "filtro-categoria", "filtro-min", "filtro-max"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", renderCatalogo);
+  });
+});

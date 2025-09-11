@@ -25,14 +25,13 @@
             <li class="nav-item"><a class="nav-link text-white" href="contacto.html">Contacto</a></li>
             <form class="d-flex" role="search" onsubmit="event.preventDefault();">
                 <input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Buscar" id="searchInput">
-                <button class="btn btn-outline-light" type="submit">
+                <button class="btn btn-outline-l" type="submit">
                   <i class="bi bi-search"></i>
                 </button>
               </form>
             </ul>
         </nav>
         <div class="d-flex align-items-center ms-auto">
-            <!-- Icono del carrito como enlace directo -->
             <a href="carrito.html" class="text-white fs-5" style="text-decoration:none;">
                 <i class="bi bi-cart"></i>
             </a>
@@ -43,6 +42,26 @@
 
 <main class="container pb-5">
   <h1 class="text-center font-orbitron my-4 py-4 text-white">PRODUCTOS</h1>
+  <div class="row mb-4">
+  <div class="col-md-3">
+    <input type="search" id="busqueda" class="form-control" placeholder="Buscar producto...">
+  </div>
+  <div class="col-md-3">
+    <select id="filtro-categoria" class="form-select">
+      <option value="">Todas las categorías</option>
+      <!-- Se llenan con JS -->
+    </select>
+  </div>
+  <div class="col-md-2">
+    <input type="number" id="filtro-min" class="form-control" placeholder="Precio mínimo">
+  </div>
+  <div class="col-md-2">
+    <input type="number" id="filtro-max" class="form-control" placeholder="Precio máximo">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-outline-light w-100" onclick="limpiarFiltros()">Limpiar</button>
+  </div>
+</div>
   <div class="row g-4 justify-content-center" id="productos-lista">
   </div>
 </main>
