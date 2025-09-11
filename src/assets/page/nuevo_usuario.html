@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Level-Up Gamer</title>
+    <link rel="icon" href="../img/logo.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../CSS/style.css"/>
+    <link rel="stylesheet" href="../CSS/dashboard.css"/>
+    <link rel="stylesheet" href="../CSS/usuarios.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="dashboard-sidebar">
+        <div>
+            <div class="dashboard-logo">
+                <img src="../img/logo.png" alt="Logo Level-Up" width="42" height="42" style="margin-right:10px;">
+                Level-Up
+            </div>
+            <nav class="dashboard-nav">
+                <ul>
+                    <li><a href="index_admin.html"><i class="fa-solid fa-table-cells-large"></i>Panel</a></li>
+                    <li><a href="pedidos.html" class="active"><i class="fa-solid fa-receipt"></i>Pedidos</a></li>
+                    <li><a href="#"><i class="fa-solid fa-boxes-stacked"></i>Inventario</a></li>
+                    <li><a href="#"><i class="fa-solid fa-chart-simple"></i>Reportes</a></li>
+                    <li><a href="#"><i class="fa-solid fa-user-tie"></i>Empleados</a></li>
+                    <li><a href="#"><i class="fa-solid fa-users"></i>Clientes</a></li>
+                </ul>
+            </nav>
+        </div>
+    </aside>
+    <main class="dashboard-main-content">
+        <div class="dashboard-main-header">
+            <span>¡HOLA Administrador!</span>
+            <i class="fa-regular fa-bell bell"></i>
+        </div>
+
+        <div class="usuarios-header-bar">
+            <h1 class="usuarios-titulo font-orbitron">NUEVO USUARIO</h1>
+        </div>
+
+        <div class="container my-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card bg-secondary bg-opacity-75 border-0 rounded shadow">
+                        <div class="card-body">
+                            <h5 class="card-title text-center font-orbitron text-white mb-4">Registrar Usuario</h5>
+                            <form id="registro-form">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label text-white">Nombre Completo</label>
+                                    <input type="text" class="form-control" id="nombre" placeholder="Ingresa tu nombre" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label text-white">Correo</label>
+                                    <input type="email" class="form-control" id="email" placeholder="Ingresa tu correo" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email-confirm" class="form-label text-white">Confirmar el Correo</label>
+                                    <input type="email" class="form-control" id="email-confirm" placeholder="Confirma tu correo" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label text-white">Contraseña</label>
+                                    <input type="password" class="form-control" id="password" placeholder="Ingresa tu contraseña" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password-confirm" class="form-label text-white">Confirmar la Contraseña</label>
+                                    <input type="password" class="form-control" id="password-confirm" placeholder="Confirma tu contraseña" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="telefono" class="form-label text-white">Teléfono (opcional)</label>
+                                    <input type="tel" class="form-control" id="telefono" placeholder="Ingresa tu número de teléfono">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="region" class="form-label text-white">Región</label>
+                                    <select class="form-control" id="region" required>
+                                        <option value="">Seleccione una región</option>
+                                        <option value="metropolitana">Metropolitana</option>
+                                        <option value="valparaiso">Valparaíso</option>
+                                        <option value="biobio">Biobío</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="comuna" class="form-label text-white">Comuna</label>
+                                    <select class="form-control" id="comuna" required>
+                                        <option value="">Seleccione una comuna</option>
+                                    </select>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-outline-light fw-bold">Registrarse</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<script src="js/usuarios.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+</script>
+</body>
+</html>
