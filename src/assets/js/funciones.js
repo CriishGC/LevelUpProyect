@@ -1,7 +1,7 @@
 // CATEGORÍAS Y PRODUCTOS
 const CATEGORIAS = [
   "Juegos de Mesa","Accesorios","Consolas","Computadores Gamers",
-  "Sillas Gamers","Mouse","Mousepad","Poleras Personalizadas","Polerones Gamers Personalizados"
+  "Sillas Gamers","Mouse","Mousepad","Poleras Personalizadas"
 ];
 
 const PRODUCTOS = [
@@ -29,6 +29,36 @@ const estado = {
   usuario: { nombre: "", correo: "", nacimiento: "", referido: "", esDuoc: false, puntos: 0, nivel: "Bronce" },
   carrito: [] // [{cod,nombre,precio,qty}]
 };
+
+// ===== USUARIO MULTIPÁGINA =====
+function guardarUsuarioEnLocalStorage(usuario) {
+  localStorage.setItem("usuario", JSON.stringify(usuario));
+}
+
+function cargarUsuarioDesdeLocalStorage() {
+  try {
+    const data = localStorage.getItem("usuario");
+    estado.usuario = data ? JSON.parse(data) : {
+      nombre: "",
+      correo: "",
+      nacimiento: "",
+      referido: "",
+      esDuoc: false,
+      puntos: 0,
+      nivel: "Bronce"
+    };
+  } catch(e) {
+    estado.usuario = {
+      nombre: "",
+      correo: "",
+      nacimiento: "",
+      referido: "",
+      esDuoc: false,
+      puntos: 0,
+      nivel: "Bronce"
+    };
+  }
+}
 
 // ===== CARRITO PERSISTENTE multi-página =====
 function cargarCarrito() {
@@ -100,11 +130,6 @@ function renderCarrito(){
   }
   actualizarBadgeCarrito();
 }
-function actualizarTotales(){
-  const subtotal = estado.carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  // ... resto igual ...
-  if ($("#total")) $("#total").textContent = formateaCLP(subtotal);
-}
 
 // MULTI-PESTAÑA: actualiza badge y carrito en todas las pestañas
 window.addEventListener("storage", function(e) {
@@ -160,13 +185,22 @@ function renderDetalleProducto() {
   actualizarBadgeCarrito();
 }
 
-// INIT EN TODAS LAS PÁGINAS
+// ===== INICIALIZACIONES EN TODAS LAS PÁGINAS =====
 document.addEventListener("DOMContentLoaded", function() {
+  cargarUsuarioDesdeLocalStorage();
   cargarCarrito();
   actualizarBadgeCarrito();
   if (typeof renderCarrito === "function") renderCarrito();
+  renderCatalogo();
+  renderIndexCatalogo();
+  initFiltros();
+  ["busqueda", "filtro-categoria", "filtro-min", "filtro-max"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", renderCatalogo);
+  });
 });
 
+// ===== CATÁLOGOS =====
 function renderCatalogo(){
   const cont = document.getElementById("productos-lista");
   if (!cont) return;
@@ -189,11 +223,6 @@ function renderCatalogo(){
     `).join('');
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-  renderCatalogo();
-  actualizarBadgeCarrito();
-});
-
 function renderIndexCatalogo() {
   const cont = document.getElementById("grid-productos");
   if (!cont) return;
@@ -213,65 +242,21 @@ function renderIndexCatalogo() {
     `).join('');
 }
 
-// Este bloque asegura que se renderice el catálogo en el index y actualice el badge del carrito
-document.addEventListener("DOMContentLoaded", function() {
-  // Solo renderiza si existe el div en la página
-  if (document.getElementById("grid-productos")) {
-    renderIndexCatalogo();
-  }
-  actualizarBadgeCarrito();
-});
-
-function renderCarrito() {
-  cargarCarrito();
-  const list = $("#carrito-lista");
-  if(!list) return;
-  if(estado.carrito.length === 0){
-    list.innerHTML = `<div class="list-group-item bg-dark text-light">Tu carrito está vacío.</div>`;
-    if ($("#total")) $("#total").textContent = "$ 0";
-  } else {
-    list.innerHTML = estado.carrito.map((it, idx) => {
-      const prod = PRODUCTOS.find(p => p.cod === it.cod);
-      const imgSrc = prod ? getImgPath(prod.img) : "../img/placeholder.webp";
-      return `
-        <div class="list-group-item bg-dark text-light d-flex flex-wrap align-items-center justify-content-between py-3 mb-3" style="border-radius: 12px; box-shadow: 0 2px 12px #2223;">
-          <div class="d-flex align-items-center gap-4">
-            <img src="${imgSrc}" alt="${it.nombre}" style="width:80px;height:80px;object-fit:cover;" class="rounded border border-primary shadow-sm me-3">
-            <div>
-              <strong class="fs-5">${it.nombre}</strong><br>
-              <span class="badge bg-primary my-1">${prod ? prod.cat : ''}</span><br>
-              <small class="text-secondary">${formateaCLP(it.precio)} c/u</small>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
-            <button class="btn btn-sm btn-outline-light" onclick="cambiarQty(${idx},-1)">−</button>
-            <span class="fs-5 px-2">${it.qty}</span>
-            <button class="btn btn-sm btn-outline-light" onclick="cambiarQty(${idx},1)">+</button>
-            <span class="fw-bold fs-5 px-3">${formateaCLP(it.precio * it.qty)}</span>
-            <button class="btn btn-sm btn-danger" onclick="quitarDelCarrito(${idx})">X</button>
-          </div>
-        </div>
-      `;
-    }).join("");
-    actualizarTotales();
-  }
-  actualizarBadgeCarrito();
+// ===== PERFIL DE USUARIO =====
+function renderPerfilUsuario() {
+  if (!document.getElementById("perfil-nombre")) return;
+  $("#perfil-nombre").textContent = estado.usuario.nombre;
+  $("#perfil-correo").textContent = estado.usuario.correo;
+  $("#perfil-nivel").textContent = estado.usuario.nivel;
+  $("#perfil-puntos").textContent = estado.usuario.puntos;
+  $("#perfil-duoc-descuento").textContent =
+    estado.usuario.correo && estado.usuario.correo.endsWith("@duocuc.cl") ? "Sí, 20%" : "No";
+  // Header nombre en perfil
+  const headerNombre = document.getElementById("header-nombre-usuario");
+  if (headerNombre) headerNombre.textContent = estado.usuario.nombre;
 }
 
-function checkout() {
-  cargarCarrito();
-  if (estado.carrito.length === 0) {
-    alert("Tu carrito está vacío.");
-    return;
-  }
-  alert("🎉 ¡Muchas gracias por comprar en nuestra página!\n\nTe esperamos nuevamente en Level-Up Gamer.");
-  estado.carrito = [];
-  guardarCarrito();
-  renderCarrito();
-  actualizarBadgeCarrito();
-}
-
-// Devuelve true si el producto coincide con los filtros
+// ===== FILTROS CATÁLOGO =====
 function coincideProducto(p, q, cat, min, max) {
   const texto = (q || "").trim().toLowerCase();
   if (texto && !(
@@ -283,8 +268,6 @@ function coincideProducto(p, q, cat, min, max) {
   if (!isNaN(max) && max && p.precio > max) return false;
   return true;
 }
-
-// Devuelve el HTML de una tarjeta de producto
 function cardProducto(p) {
   return `
     <div class="col-sm-6 col-md-4 col-lg-3">
@@ -303,9 +286,7 @@ function cardProducto(p) {
     </div>
   `;
 }
-
-// Renderiza el catálogo filtrado
-function renderCatalogo(){
+function renderCatalogoFiltrado(){
   const q = document.getElementById("busqueda")?.value || "";
   const cat = document.getElementById("filtro-categoria")?.value || "";
   const min = parseInt(document.getElementById("filtro-min")?.value) || NaN;
@@ -317,8 +298,6 @@ function renderCatalogo(){
     ? filtrados.map(cardProducto).join("")
     : `<div class="text-center text-muted">Sin resultados</div>`;
 }
-
-// Inicializa las opciones de categorías
 function initFiltros(){
   const sel = document.getElementById("filtro-categoria");
   if (!sel) return;
@@ -328,22 +307,104 @@ function initFiltros(){
     opt.value = c; opt.textContent = c; sel.appendChild(opt);
   });
 }
-
-// Limpia filtros y muestra todo
 function limpiarFiltros(){
   if(document.getElementById("busqueda")) document.getElementById("busqueda").value = "";
   if(document.getElementById("filtro-categoria")) document.getElementById("filtro-categoria").value = "";
   if(document.getElementById("filtro-min")) document.getElementById("filtro-min").value = "";
   if(document.getElementById("filtro-max")) document.getElementById("filtro-max").value = "";
-  renderCatalogo();
+  renderCatalogoFiltrado();
 }
 
-// Inicializa filtros y agrega eventos
-document.addEventListener("DOMContentLoaded", function() {
-  initFiltros();
-  renderCatalogo();
-  ["busqueda", "filtro-categoria", "filtro-min", "filtro-max"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("input", renderCatalogo);
+// ===== DESCUENTO DUOC =====
+function actualizarTotales() {
+  const subtotal = estado.carrito.reduce((a, i) => a + i.precio * i.qty, 0);
+  let descuento = 0, esDuoc = false;
+  if (
+    estado.usuario.correo &&
+    estado.usuario.correo.trim().toLowerCase().endsWith("@duocuc.cl")
+  ) {
+    descuento = subtotal * 0.20;
+    esDuoc = true;
+  }
+  const descDiv = document.getElementById("descuento");
+  if (descDiv)
+    descDiv.innerHTML = esDuoc
+      ? `<span>Descuento DuocUC: -${formateaCLP(descuento)} (20%)</span>`
+      : "";
+  const duocDiv = document.getElementById("duoc-validacion");
+  if (duocDiv) {
+    duocDiv.innerHTML = esDuoc
+      ? `<span class="badge bg-success"><i class="bi bi-patch-check"></i> Usuario DuocUC verificado. ¡20% de descuento aplicado!</span>`
+      : `<span class="badge bg-danger"><i class="bi bi-x-circle"></i> No eres usuario DuocUC. ¿Tienes correo @duocuc.cl?</span>`;
+  }
+  const totalFinal = subtotal - descuento;
+  if (document.getElementById("total"))
+    document.getElementById("total").textContent = formateaCLP(totalFinal);
+}
+
+// ===== CHECKOUT =====
+function checkout() {
+  cargarCarrito();
+  if (estado.carrito.length === 0) {
+    alert("Tu carrito está vacío.");
+    return;
+  }
+  alert("🎉 ¡Muchas gracias por comprar en nuestra página!\n\nTe esperamos nuevamente en Level-Up Gamer.");
+  estado.carrito = [];
+  guardarCarrito();
+  renderCarrito();
+  actualizarBadgeCarrito();
+}
+
+// ===== LOGIN USUARIO =====
+function iniciarLogin() {
+  const form = document.getElementById("loginForm");
+  if (!form) return;
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const correo = document.getElementById("correo").value.trim();
+    const contrasena = document.getElementById("contrasena").value.trim();
+
+    let valido = true;
+    if (!correo) {
+      document.getElementById("correoError").textContent = "Ingresa tu correo";
+      document.getElementById("correo").classList.add("is-invalid");
+      valido = false;
+    } else {
+      document.getElementById("correoError").textContent = "";
+      document.getElementById("correo").classList.remove("is-invalid");
+    }
+    if (!contrasena) {
+      document.getElementById("contrasenaError").textContent = "Ingresa tu contraseña";
+      document.getElementById("contrasena").classList.add("is-invalid");
+      valido = false;
+    } else {
+      document.getElementById("contrasenaError").textContent = "";
+      document.getElementById("contrasena").classList.remove("is-invalid");
+    }
+    if (!valido) return;
+
+    // Simula usuario (ajusta si tienes datos reales)
+    const usuario = {
+      nombre: correo.split("@")[0],
+      correo: correo,
+      nacimiento: "",
+      referido: "",
+      esDuoc: correo.toLowerCase().endsWith("@duocuc.cl"),
+      puntos: 0,
+      nivel: "Bronce"
+    };
+
+    guardarUsuarioEnLocalStorage(usuario);
+
+    // Mensaje de éxito
+    alert("¡Inicio de sesión exitoso!");
+
+    // Redirige al index
+    window.location.href = "../../index.html";
   });
+}
+document.addEventListener("DOMContentLoaded", function() {
+  iniciarLogin();
 });
