@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Level-Up Gamer</title>
+    <link rel="icon" href="../img/logo.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../CSS/style.css"/>
+    <link rel="stylesheet" href="../CSS/dashboard.css"/>
+    <link rel="stylesheet" href="../CSS/usuarios.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="dashboard-sidebar">
+        <div>
+            <div class="dashboard-logo">
+                <img src="../img/logo.png" alt="Logo Level-Up" width="42" height="42" style="margin-right:10px;">
+                Level-Up
+            </div>
+            <nav class="dashboard-nav">
+                <ul>
+                    <li><a href="index_admin.html"><i class="fa-solid fa-table-cells-large"></i>Panel</a></li>
+                    <li><a href="#" class="active"><i class="fa-solid fa-receipt"></i>Pedidos</a></li>
+                    <li><a href="#"><i class="fa-solid fa-boxes-stacked"></i>Inventario</a></li>
+                    <li><a href="#"><i class="fa-solid fa-chart-simple"></i>Reportes</a></li>
+                    <li><a href="#"><i class="fa-solid fa-user-tie"></i>Empleados</a></li>
+                    <li><a href="#"><i class="fa-solid fa-users"></i>Clientes</a></li>
+                </ul>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="dashboard-main-content">
+        <div class="dashboard-main-header">
+            <span>¡HOLA Administrador!</span>
+            <i class="fa-regular fa-bell bell"></i>
+        </div>
+        
+        <section class="dashboard-main-section">
+            <div class="usuarios-header-bar">
+                <h1 class="usuarios-titulo font-orbitron">Usuarios</h1>
+                <a href="nuevo_usuario.html" class="usuarios-btn-nuevo">NUEVO USUARIO</a>
+            </div>
+
+            <div class="usuarios-table-container">
+                <table class="usuarios-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th><th>Orden</th><th>Cliente</th><th>Estado</th><th>Monto</th>
+                        </tr>
+                        <tr>
+                          <td>2024-06-15</td>
+                          <td>US015</td>
+                          <td>Juanita Ríos</td>
+                          <td>Pendiente</td>
+                          <td>$120.000</td>
+                        </tr>
+                        <tr>
+                        <td>2024-06-16</td>
+                        <td>US016</td>
+                        <td>Pedro González</td>
+                        <td>Pendiente</td>
+                        <td>$130.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-17</td>
+                        <td>US017</td>
+                        <td>Lucía Fernández</td>
+                        <td>Pendiente</td>
+                        <td>$140.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-18</td>
+                        <td>US018</td>
+                        <td>Carlos Pérez</td>
+                        <td>Pendiente</td>
+                        <td>$150.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-19</td>
+                        <td>US019</td>
+                        <td>María López</td>
+                        <td>Pendiente</td>
+                        <td>$160.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-20</td>
+                        <td>US020</td>
+                        <td>Andrés Torres</td>
+                        <td>Pendiente</td>
+                        <td>$170.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-21</td>
+                        <td>US021</td>
+                        <td>Elena Martínez</td>
+                        <td>Pendiente</td>
+                        <td>$180.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-22</td>
+                        <td>US022</td>
+                        <td>Jorge Ramírez</td>
+                        <td>Pendiente</td>
+                        <td>$190.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-23</td>
+                        <td>US023</td>
+                        <td>Ana Sánchez</td>
+                        <td>Pendiente</td>
+                        <td>$200.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-24</td>
+                        <td>US024</td>
+                        <td>Ricardo Díaz</td>
+                        <td>Pendiente</td>
+                        <td>$210.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-25</td>
+                        <td>US025</td>
+                        <td>Patricia Morales</td>
+                        <td>Pendiente</td>
+                        <td>$220.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-26</td>
+                        <td>US026</td>
+                        <td>Fernando Castillo</td>
+                        <td>Pendiente</td>
+                        <td>$230.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-27</td>
+                        <td>US027</td>
+                        <td>Claudia Gómez</td>
+                        <td>Pendiente</td>
+                        <td>$240.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-28</td>
+                        <td>US028</td>
+                        <td>Mario Herrera</td>
+                        <td>Pendiente</td>
+                        <td>$250.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-29</td>
+                        <td>US029</td>
+                        <td>Verónica Castro</td>
+                        <td>Pendiente</td>
+                        <td>$260.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-06-30</td>
+                        <td>US030</td>
+                        <td>Gabriel Ruiz</td>
+                        <td>Pendiente</td>
+                        <td>$270.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-07-01</td>
+                        <td>US031</td>
+                        <td>Silvia Ortega</td>
+                        <td>Pendiente</td>
+                        <td>$280.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-07-02</td>
+                        <td>US032</td>
+                        <td>Hugo Jiménez</td>
+                        <td>Pendiente</td>
+                        <td>$290.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-07-03</td>
+                        <td>US033</td>
+                        <td>Teresa Vargas</td>
+                        <td>Pendiente</td>
+                        <td>$300.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-07-04</td>
+                        <td>US034</td>
+                        <td>Diego Salazar</td>
+                        <td>Pendiente</td>
+                        <td>$310.000</td>
+                      </tr>
+                      <tr>
+                        <td>2024-07-05</td>
+                        <td>US035</td>
+                        <td>Raquel Peña</td>
+                        <td>Pendiente</td>
+                        <td>$320.000</td>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="usuarios-paginacion">
+                <span>Página</span>
+                <button class="pag-btn" disabled>11</button>
+                <span>12</span>
+                <span>de</span>
+                <span>17</span>
+                <button class="pag-btn">-</button>
+                <button class="pag-btn">+</button>
+                <button class="pag-btn pag-zoom">🔍</button>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="js/usuarios.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

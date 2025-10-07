@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sobre Nosotros | LevelUpProyect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../CSS/style.css">
+</head>
+<body>
+    <header class="navbar-electric py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+        <a href="../../index.html" class="d-flex align-items-center text-decoration-none me-3">
+            <img src="../img/logo.png" alt="Logo" width="80px" height="80px" class="me-2">
+            <span class="fs-4 fw-bold font-orbitron text-white">Level-Up Gamer</span>
+        </a>
+        <nav class="flex-grow-1">
+            <ul class="nav gap-3 justify-content-center">
+            <li class="nav-item"><a class="nav-link text-white" href="../../index.html">Inicio</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="catalogo.html">Productos</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="nosotros.html">Nosotros</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="blog.html">Blog</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="contacto.html">Contacto</a></li>
+            </ul>
+        </nav>
+         <div class="d-flex align-items-center ms-auto gap-3">
+       <a href="perfilUsuario.html" class="text-white fs-5 d-flex align-items-center" style="text-decoration:none;" title="Perfil de usuario">
+           <i class="bi bi-person-circle"></i>
+           <span class="ms-1 d-none d-md-inline" id="header-nombre-usuario"></span>
+       </a>
+       <a href="carrito.html" class="text-white fs-5" style="text-decoration:none;">
+           <i class="bi bi-cart"></i>
+       </a>
+       <span class="text-white ms-2">Carrito (<span id="badge-carrito">0</span>)</span>
+      </div>
+    </header>
+    <main class="container pb-5">
+      <h1 class="text-center font-orbitron my-4 py-4 text-white">Acerca de nosotros</h1>
+      <!-- Eliminamos la lista de productos, solo información de la página -->
+    </main>
+
+  <main>
+    <section id="historia" class="container hero-wireframe my-4 py-4 bg-secondary">
+      <h2>Historia de la Tienda</h2>
+      <p>
+        Level-Up Gamer es una tienda online dedicada a satisfacer las necesidades de los entusiastas de los
+        videojuegos en Chile. Lanzada hace dos años como respuesta a la creciente demanda durante la
+        pandemia, Leves-Up Gamer ofrece una amplia gama de productos para gamers, desde consolas y
+        accesorios hasta computadores y sillas especializadas. Aunque no cuenta con una ubicación física,
+        realiza despachos a todo el país.      
+      </p>
+      <h2>Nuestra Misión</h2>
+      <p>
+        Proporcionar productos de alta calidad para gamers en todo Chile, ofreciendo una experiencia de
+        compra única y personalizada, con un enfoque en la satisfacción del cliente y el crecimiento de la
+        comunidad gamer.
+      </p>
+      <h2>Nuestra Visión</h2>
+      <p>
+        Ser la tienda online líder en productos para gamers en Chile, reconocida por su innovación, servicio
+        al cliente excepcional, y un programa de fidelización basado en gamificación que recompense a
+        nuestros clientes más fieles.
+      </p>
+    </section>
+    <section id="recorrido" class="container hero-wireframe my-4 py-4 bg-secondary">
+      <h2>Recorrido de la Empresa</h2>
+      <ul>
+        <li><strong>2019:</strong> Fundación de LevelUpProyect y primer proyecto entregado.</li>
+        <li><strong>2020:</strong> Expansión del equipo y adquisición de nuevos clientes.</li>
+        <li><strong>2021:</strong> Lanzamiento de nuestra plataforma principal.</li>
+        <li><strong>2023:</strong> Reconocimiento en el sector por innovación y servicio.</li>
+      </ul>
+    </section>
+    <section id="equipo" >
+      <h2>Equipo de Desarrollo</h2>
+      <div class="equipo-lista">
+        <div class="miembro">
+          <img src="../img/yuhui.png" alt="Miembro 1" class="rounded-4">
+          <h3>Cristóbal Antonio Gómez Chau</h3>
+          <p>Desarrollador Full Stack</p>
+        </div>
+        <div class="miembro">
+          <img src="../img/papimicky.jpeg" alt="Miembro 2" class="rounded-4">
+          <h3>Sebastián Alberto Mariqueo Pérez</h3>
+          <p>Especialista Frontend</p>
+        </div>
+        <div class="miembro">
+          <img src="../img/flaitiano.jpeg" alt="Miembro 3" class="rounded-4">
+          <h3>Jonathan Jean Pierre Lillo Marín</h3>
+          <p>Gestor de Proyectos</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+    <footer class="bg-dark border-top border-secondary py-3 mt-5 text-white">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <span class="fw-bold font-orbitron fs-5 text-neon">Level-Up Gamer</span>
+            <div class="mt-3">
+            <img src="../img/visa.png" width="32" alt="Visa" class="me-2">
+            <img src="../img/mastercard.png" width="32" alt="Mastercard" class="me-2">
+            <img src="../img/paypal.png" width="32" alt="Paypal">
+            </div>
+        </div>
+        <div class="d-flex flex-column align-items-end">
+            <a 
+            href="https://wa.me/56984977053" 
+            target="_blank" 
+            rel="noopener" 
+            class="btn btn-success btn-whatsapp-footer d-flex align-items-center mb-2"
+            style="background-color:#39FF14;border-color:#39FF14;color:#000;font-weight:bold;">
+            <i class="bi bi-whatsapp me-2 fs-5"></i> Soporte Técnico (WhatsApp)
+            </a>
+            <span class="text-secondary small">¿Dudas o problemas? ¡Contáctanos!</span>
+        </div>
+        </div>
+        <div class="text-center mt-3 text-secondary"><small>© 2025 Level-Up Gamer — Despachos a todo Chile</small></div>
+    </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../js/funciones.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</body>
+</html>
