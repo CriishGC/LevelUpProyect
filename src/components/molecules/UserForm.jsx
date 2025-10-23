@@ -1,12 +1,12 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Input from "../atoms/Input";
 import Button from "../atoms/Button";
-import { validarRun, validarCorreo, validadMayoriaEdad} from "../../utils/validaciones";
+import { validarRun, validarCorreo, validadMayoriaEdad } from "../../utils/script";
 import { addUser } from "../../services/firestoreService";
 import { useHistory } from "react-router-dom";
 
 const UserForm = () => {
-    const [form, setForm] = useState({ run:"", nombre:"", correo:"", clave:"", fecha:""});
+    const [form, setForm] = useState({ run:"", nombre:"", correo:"", clave:"", fecha:"" });
     const [msg, setMsg] = useState("");
     const history = useHistory();
 
@@ -16,15 +16,21 @@ const UserForm = () => {
         e.preventDefault();
 
         const { run, nombre, correo, clave, fecha } = form;
-        if (!validarRun(run)) return setMsg("RUN Incorrecto");
-        if (!nombre) return setMsg("Nombre en blanco");
-        if (!validarCorreo(correo)) return setMsg("Correo incorrecto");
+
+        if (!validarRun(run)) return setMsg("RUN incorrecto");
+        if (!nombre) return setMsg("El nombre no debe quedar vacío");
+        if (!validarCorreo(correo)) return setMsg("Correo inválido");
         if (!validadMayoriaEdad(fecha)) return setMsg("Debe ser mayor de 18 años");
 
         await addUser(form);
         setMsg("Formulario enviado correctamente");
+
         setTimeout(() => {
-            history.push(correo === "admin@duoc.cl" ? "/perfil-admin?nombre="+nombre : "/perfil-cliente?nombre="+nombre);
+            history.push(
+                correo.toLowerCase() === "admin@duoc.cl"
+                    ? `/perfil-admin?nombre=${encodeURIComponent(nombre)}`
+                    : `/perfil-cliente?nombre=${encodeURIComponent(nombre)}`
+            );
         }, 1000);
     };
 
@@ -34,9 +40,9 @@ const UserForm = () => {
             <Input id="nombre" label="Nombre" value={form.nombre} onChange={handleChange} required />
             <Input id="correo" label="Correo" type="email" value={form.correo} onChange={handleChange} required />
             <Input id="clave" label="Clave" type="password" value={form.clave} onChange={handleChange} required />
-            <Input id="fecha" label="Fecha de Nacimiento" type="date" value={form.fecha} onChange={handleChange} required />
+            <Input id="fecha" label="Fecha de nacimiento" type="date" value={form.fecha} onChange={handleChange} required />
             <Button type="submit">Enviar</Button>
-            <p style={{color:"crimson"}}>{msg}</p>
+            <p style={{ color: "crimson" }}>{msg}</p>
         </form>
     );
 };
