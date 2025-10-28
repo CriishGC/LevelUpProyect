@@ -9,6 +9,7 @@ export function validarRun(run) {
     return regex.test(run);
 }
 
+// ✅ renombrada para evitar confusión
 export function esMayorEdad(fecha) {
     const hoy = new Date();
     const fechaNacimiento = new Date(fecha);
@@ -19,5 +20,5 @@ export function esMayorEdad(fecha) {
         edad--;
     }
 
-    return edad >= 18;
+    return edad >= 18;                                          
 }
