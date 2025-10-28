@@ -1,3 +1,4 @@
+
 //Validación del correo
 function validarCorreo(correo) {
     const regex = /^[\w.+-]+@(duoc\.cl|profesor\.duoc\.cl|gmail\.com)$/i;
