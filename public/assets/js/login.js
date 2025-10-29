@@ -1,10 +1,3 @@
-/* login.js — Iniciar sesión usando datos guardados en Firestore
-   - Solo pide correo + contraseña
-   - Busca en colección "usuarios" (campo "correo" en minúsculas y "clave")
-   - Redirige por "rol" guardado; fallback: admin si correo === admin@duoc.cl
-   - Cargar con: <script type="module" src="../js/login.js"></script>
-*/
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import {
   getFirestore, collection, query, where, limit, getDocs
@@ -31,12 +24,38 @@ const RUTAS_POR_ROL = {
 
 // 3) Helpers DOM
 const $ = (id) => document.getElementById(id);
+
+function ensureMsgBox() {
+  let box = $("mensajeLogin");
+  if (!box) {
+    const form = $("loginForm");
+    box = document.createElement("div");
+    box.id = "mensajeLogin";
+    box.role = "alert";
+    box.style.display = "none";
+    form?.prepend(box);
+  }
+  return box;
+}
+
 const setMsg = (type, text) => {
-  const box = $("mensajeLogin");
-  if (!box) return;
-  box.className = `alert alert-${type}`;
+  const box = ensureMsgBox();
+  box.className = `alert alert-${type} mt-2`;
   box.textContent = text;
+  box.style.display = "block";
 };
+
+function clearFieldErrors() {
+  const correo = $("correo");
+  const contrasena = $("contrasena");
+  const correoError = $("correoError");
+  const contrasenaError = $("contrasenaError");
+
+  correo?.classList.remove("is-invalid");
+  contrasena?.classList.remove("is-invalid");
+  if (correoError) correoError.textContent = "";
+  if (contrasenaError) contrasenaError.textContent = "";
+}
 
 // 4) Lógica de login con Firestore (usa datos guardados)
 async function iniciarSesionConFirestore(correo, password) {
@@ -50,7 +69,6 @@ async function iniciarSesionConFirestore(correo, password) {
     throw new Error("Debes ingresar tu contraseña.");
   }
 
-  // Buscar usuario por correo
   const q = query(collection(db, "usuarios"), where("correo", "==", correoVal), limit(1));
   const snap = await getDocs(q);
   if (snap.empty) throw new Error("No existe una cuenta con ese correo.");
@@ -58,15 +76,12 @@ async function iniciarSesionConFirestore(correo, password) {
   const docUser = snap.docs[0];
   const data = docUser.data();
 
-  // Comparar contraseña (texto plano tal como se guardó en el registro DEMO)
   if (!data.clave || data.clave !== claveVal) throw new Error("Contraseña incorrecta.");
 
-  // Si tienes campo "activo" y quieres bloquear:
   if (data.activo === "N" || data.activo === false) {
     throw new Error("Tu cuenta está inactiva. Contacta soporte.");
   }
 
-  // Determinar rol desde BD o fallback por correo
   const rolDetectado = data.rol || (correoVal === "admin@duoc.cl" ? "admin" : "usuario");
 
   return {
@@ -89,30 +104,86 @@ function guardarSesion(usuario) {
 
 // 6) Submit del formulario
 document.addEventListener("DOMContentLoaded", () => {
-  const form = $("formLogin");
-  const inputCorreo = $("correoLogin");
-  const inputPass   = $("passwordLogin");
+  const form        = $("loginForm");
+  const inputCorreo = $("correo");
+  const inputPass   = $("contrasena");
+  const correoError = $("correoError");
+  const passError   = $("contrasenaError");
+  const submitBtn   = form?.querySelector('button[type="submit"]');
 
-  if (!form) return;
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearFieldErrors();
+      setMsg("secondary", "Verificando credenciales…");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setMsg("secondary", "Verificando credenciales…");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Ingresando…";
+      }
 
-    try {
-      const usuario = await iniciarSesionConFirestore(inputCorreo.value, inputPass.value);
-      guardarSesion(usuario);
-      setMsg("success", `Bienvenido, ${usuario.nombre || "usuario"}. Redirigiendo…`);
+      try {
+        const usuario = await iniciarSesionConFirestore(inputCorreo.value, inputPass.value);
+        guardarSesion(usuario);
+        setMsg("success", `Bienvenido, ${usuario.nombre || "usuario"}. Redirigiendo…`);
 
-      // Redirección por rol
-      const destino = RUTAS_POR_ROL[usuario.rol] || RUTAS_POR_ROL.usuario;
-      setTimeout(() => { window.location.href = destino; }, 700);
+        const destino = RUTAS_POR_ROL[usuario.rol] || RUTAS_POR_ROL.usuario;
+        setTimeout(() => { window.location.href = destino; }, 700);
 
-    } catch (err) {
-      console.error(err);
-      setMsg("danger", err?.message || "No se pudo iniciar sesión.");
-    }
-  });
+      } catch (err) {
+        console.error(err);
+        const msg = err?.message || "No se pudo iniciar sesión.";
+        setMsg("danger", msg);
+
+        // Marcar campos según el error
+        if (msg.includes("Correo inválido")) {
+          inputCorreo?.classList.add("is-invalid");
+          if (correoError) correoError.textContent = "Ingresa un correo válido.";
+        } else if (msg.includes("Debes ingresar tu contraseña")) {
+          inputPass?.classList.add("is-invalid");
+          if (passError) passError.textContent = "La contraseña es obligatoria.";
+        } else if (msg.includes("No existe una cuenta")) {
+          inputCorreo?.classList.add("is-invalid");
+          if (correoError) correoError.textContent = "No existe una cuenta con ese correo.";
+        } else if (msg.includes("Contraseña incorrecta")) {
+          inputPass?.classList.add("is-invalid");
+          if (passError) passError.textContent = "Contraseña incorrecta.";
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Iniciar sesión";
+        }
+      }
+    });
+  } else {
+    console.warn('No se encontró el formulario con id="loginForm". Verifica el HTML.');
+  }
+
+  // Handler "¿Olvidaste tu contraseña?"
+  const btnForgot = $("sendForgot");
+  const forgotEmail = $("forgotEmail");
+  const forgotEmailError = $("forgotEmailError");
+  const forgotMessage = $("forgotMessage");
+
+  if (btnForgot) {
+    btnForgot.addEventListener("click", () => {
+      const email = (forgotEmail?.value || "").trim().toLowerCase();
+      forgotEmailError.textContent = "";
+      forgotEmail.classList.remove("is-invalid");
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        forgotEmail.classList.add("is-invalid");
+        forgotEmailError.textContent = "Ingresa un correo válido.";
+        return;
+      }
+
+      // Aquí iría tu flujo real de recuperación (Auth/Backend). Por ahora mostramos feedback.
+      if (forgotMessage) {
+        forgotMessage.style.display = "block";
+      }
+    });
+  }
 
   // Debug
   console.log("Firebase projectId:", app.options.projectId);

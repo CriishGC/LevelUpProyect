@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // Redirección según correo
       setTimeout(() => {
         if (correoVal === "admin@duoc.cl") {
-          window.location.href = `../page/sesion.html?nombre=${encodeURIComponent(nombreVal)}`;
+          window.location.href = `../page/login.html?nombre=${encodeURIComponent(nombreVal)}`;
         } else {
           window.location.href = `../../index.html?nombre=${encodeURIComponent(nombreVal)}`;
         }

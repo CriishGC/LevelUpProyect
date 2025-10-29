@@ -26,7 +26,6 @@
             </ul>
         </nav>
         <div class="d-flex align-items-center ms-auto">
-            <!-- Icono del carrito como enlace directo -->
             <a href="carrito.html" class="text-white fs-5" style="text-decoration:none;">
                 <i class="bi bi-cart"></i>
             </a>
@@ -35,7 +34,6 @@
         </div>
     </header>
 
-
     <div class="container min-vh-100 d-flex flex-column justify-content-center align-items-center">
         <div class="mb-3">
             <div style="width:120px;height:80px;display:flex;align-items:center;justify-content:center;">
@@ -43,8 +41,13 @@
             </div>
         </div>
         <h2 class="mb-4 text-center text-white fw-bold">Level-Up Gamer</h2>
+
         <div class="card px-4 py-4" style="max-width: 400px; width: 100%; background: #161616; border-radius: 16px;">
             <h5 class="card-title mb-3 text-white">Inicio de sesión</h5>
+
+            <!-- Contenedor de mensajes -->
+            <div id="mensajeLogin" class="alert" style="display:none;"></div>
+
             <form id="loginForm" novalidate>
                 <div class="mb-3">
                     <label for="correo" class="form-label text-white">CORREO</label>
@@ -66,6 +69,7 @@
         </div>
     </div>
 
+    <!-- Modal Recuperar contraseña -->
     <div class="modal fade" id="forgotModal" tabindex="-1" aria-labelledby="forgotModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content" style="background:#161616;">
@@ -90,8 +94,7 @@
       </div>
     </div>
 
-
-     <footer class="bg-dark border-top border-secondary py-3 mt-5 text-white">
+    <footer class="bg-dark border-top border-secondary py-3 mt-5 text-white">
         <div class="container d-flex flex-wrap justify-content-between align-items-center">
         <div>
             <span class="fw-bold font-orbitron fs-5 text-neon">Level-Up Gamer</span>
@@ -115,8 +118,10 @@
         </div>
         <div class="text-center mt-3 text-secondary"><small>© 2025 Level-Up Gamer — Despachos a todo Chile</small></div>
     </footer>
+
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/login.js"></script>
+    <script type="module" src="../js/login.js"></script>
     <script src="../js/funciones.js"></script>
 </body>
 </html>
