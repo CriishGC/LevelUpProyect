@@ -1,77 +1,84 @@
 /* Script de validaciones + guardado en Firestore
-   - Requiere Bootstrap 5
-   - Carga Firebase v10 modular por CDN (necesita <script type="module"> en el HTML)
+   - Requiere Bootstrap 5 (para clases de validación)
+   - Carga Firebase v10 modular por CDN (usa <script type="module">)
 */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-// 1) Configura tu proyecto Firebase aquí
+// (Opcional) si tienes una función addUser en otro archivo, impórtala así:
+// import { addUser } from "./ruta/a/tu/servicio.js";
+
+// 1) Configuración Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
-    authDomain: "tiendalevelup-ccd23.firebaseapp.com",
-    projectId: "tiendalevelup-ccd23",
-    storageBucket: "tiendalevelup-ccd23.appspot.com",//actualizado
-    messagingSenderId: "788122901795",
-    appId: "1:788122901795:web:1feabe6474cd2b44ef4096",
-    measurementId: "G-QHQ3RM5FD8"
+  authDomain: "tiendalevelup-ccd23.firebaseapp.com",
+  projectId: "tiendalevelup-ccd23",
+  storageBucket: "tiendalevelup-ccd23.appspot.com",
+  messagingSenderId: "788122901795",
+  appId: "1:788122901795:web:1feabe6474cd2b44ef4096",
+  measurementId: "G-QHQ3RM5FD8",
 };
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db  = getFirestore(app);
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const $ = (id) => document.getElementById(id);
 
-  const form = $('formUsuario');
-  const mensaje = $('mensaje');
+  // --- Elementos del DOM ---
+  const form              = $("formUsuario");
+  const mensaje           = $("mensaje");
 
-  const run = $('run');
-  const nombre = $('nombre');
-  const correo = $('correo');
-  const confirmarCorreo = $('confirmarCorreo');
-  const password = $('password');
-  const confirmarPassword = $('confirmarPassword');
-  const telefono = $('telefono');
-  const fecha = $('fecha');
-  const region = $('region');
-  const comuna = $('comuna');
+  const run               = $("run");
+  const nombre            = $("nombre");
+  const correo            = $("correo");
+  const confirmarCorreo   = $("confirmarCorreo");
+  const password          = $("password");
+  const confirmarPassword = $("confirmarPassword");
+  const telefono          = $("telefono");
+  const fecha             = $("fecha");
+  const region            = $("region");
+  const comuna            = $("comuna");
 
+  // --- Datos auxiliares ---
   const comunasPorRegion = {
-    metropolitana: ['Santiago', 'Providencia', 'Las Condes', 'Maipú', 'Puente Alto'],
-    valparaiso: ['Valparaíso', 'Viña del Mar', 'Quilpué', 'Villa Alemana', 'Quillota'],
-    biobio: ['Concepción', 'Talcahuano', 'Chiguayante', 'San Pedro de la Paz', 'Coronel'],
+    metropolitana: ["Santiago", "Providencia", "Las Condes", "Maipú", "Puente Alto"],
+    valparaiso: ["Valparaíso", "Viña del Mar", "Quilpué", "Villa Alemana", "Quillota"],
+    biobio: ["Concepción", "Talcahuano", "Chiguayante", "San Pedro de la Paz", "Coronel"],
   };
 
+  // --- Utilidades de UI/validación ---
   function getOrCreateFeedbackEl(input) {
-    const id = input.id + 'Feedback';
+    const id = input.id + "Feedback";
     let fb = document.getElementById(id);
     if (!fb) {
-      fb = document.createElement('div');
+      fb = document.createElement("div");
       fb.id = id;
-      fb.className = 'invalid-feedback';
-      input.insertAdjacentElement('afterend', fb);
-      const described = input.getAttribute('aria-describedby') || '';
-      input.setAttribute('aria-describedby', (described + ' ' + id).trim());
+      fb.className = "invalid-feedback";
+      input.insertAdjacentElement("afterend", fb);
+      const described = input.getAttribute("aria-describedby") || "";
+      input.setAttribute("aria-describedby", (described + " " + id).trim());
     }
     return fb;
   }
 
-  function setFieldState(input, ok, message = '') {
+  function setFieldState(input, ok, message = "") {
     const fb = getOrCreateFeedbackEl(input);
     if (ok) {
-      input.classList.remove('is-invalid');
-      input.classList.add('is-valid');
-      fb.textContent = '';
+      input.classList.remove("is-invalid");
+      input.classList.add("is-valid");
+      fb.textContent = "";
     } else {
-      input.classList.remove('is-valid');
-      input.classList.add('is-invalid');
+      input.classList.remove("is-valid");
+      input.classList.add("is-invalid");
       fb.textContent = message;
     }
   }
 
+  // --- RUN ---
   function normalizarRUN(value) {
-    const clean = (value || '').replace(/\./g, '').replace(/\s+/g, '').toUpperCase();
-    const match = clean.match(/^(\d{1,8})([-]?)([\dK])$/i);
+    const clean = (value || "").replace(/\./g, "").replace(/\s+/g, "").toUpperCase();
+    const match = clean.match(/^(\d{1,8})(-?)([\dK])$/i);
     if (!match) return null;
     const cuerpo = match[1];
     const dv = match[3];
@@ -87,8 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const resto = suma % 11;
     const dvCalc = 11 - resto;
-    if (dvCalc === 11) return '0';
-    if (dvCalc === 10) return 'K';
+    if (dvCalc === 11) return "0";
+    if (dvCalc === 10) return "K";
     return String(dvCalc);
   }
 
@@ -96,12 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const raw = run.value;
     const norm = normalizarRUN(raw);
     if (!norm) {
-      setFieldState(run, false, 'Formato de RUN inválido. Ej: 12345678-K');
+      setFieldState(run, false, "Formato de RUN inválido. Ej: 12345678-K");
       return false;
     }
     const dvEsperado = calcularDV(norm.cuerpo);
     if (dvEsperado !== norm.dv) {
-      setFieldState(run, false, 'RUN inválido: dígito verificador no coincide.');
+      setFieldState(run, false, "RUN inválido: dígito verificador no coincide.");
       return false;
     }
     setFieldState(run, true);
@@ -109,14 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return true;
   }
 
+  // --- Otras validaciones ---
   function validarNombre() {
-    const val = (nombre.value || '').trim();
+    const val = (nombre.value || "").trim();
     if (val.length < 3) {
-      setFieldState(nombre, false, 'Ingresa al menos 3 caracteres.');
+      setFieldState(nombre, false, "Ingresa al menos 3 caracteres.");
       return false;
     }
     if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(val)) {
-      setFieldState(nombre, false, 'Solo letras y espacios.');
+      setFieldState(nombre, false, "Solo letras y espacios.");
       return false;
     }
     setFieldState(nombre, true);
@@ -124,10 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validarCorreo() {
-    const val = (correo.value || '').trim();
+    const val = (correo.value || "").trim();
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
     if (!ok) {
-      setFieldState(correo, false, 'Correo inválido.');
+      setFieldState(correo, false, "Correo inválido.");
       return false;
     }
     setFieldState(correo, true);
@@ -136,9 +144,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validarConfirmarCorreo() {
-    const val = (confirmarCorreo.value || '').trim();
-    if (val !== (correo.value || '').trim()) {
-      setFieldState(confirmarCorreo, false, 'Los correos no coinciden.');
+    const val = (confirmarCorreo.value || "").trim();
+    if (val !== (correo.value || "").trim()) {
+      setFieldState(confirmarCorreo, false, "Los correos no coinciden.");
       return false;
     }
     setFieldState(confirmarCorreo, true);
@@ -146,9 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validarPassword() {
-    const val = password.value || '';
+    const val = password.value || "";
     if (val.length < 6) {
-      setFieldState(password, false, 'La contraseña debe tener al menos 6 caracteres.');
+      setFieldState(password, false, "La contraseña debe tener al menos 6 caracteres.");
       return false;
     }
     setFieldState(password, true);
@@ -158,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function validarConfirmarPassword() {
     if (confirmarPassword.value !== password.value) {
-      setFieldState(confirmarPassword, false, 'Las contraseñas no coinciden.');
+      setFieldState(confirmarPassword, false, "Las contraseñas no coinciden.");
       return false;
     }
     setFieldState(confirmarPassword, true);
@@ -166,15 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function validarTelefono() {
-    const val = (telefono.value || '').replace(/\s+/g, '');
+    const val = (telefono.value || "").replace(/\s+/g, "");
     if (!val) {
-      telefono.classList.remove('is-invalid', 'is-valid');
-      return true;
+      telefono.classList.remove("is-invalid", "is-valid");
+      return true; // opcional
     }
-    const limpio = val.replace(/^\+56/, '');
-    const soloDigitos = limpio.replace(/\D/g, '');
+    const limpio = val.replace(/^\+56/, "");
+    const soloDigitos = limpio.replace(/\D/g, "");
     if (soloDigitos.length < 9 || soloDigitos.length > 10) {
-      setFieldState(telefono, false, 'Teléfono inválido. Ej: +56912345678 o 912345678.');
+      setFieldState(telefono, false, "Teléfono inválido. Ej: +56912345678 o 912345678.");
       return false;
     }
     setFieldState(telefono, true);
@@ -193,16 +201,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function validarFecha() {
     const val = fecha.value;
     if (!val) {
-      setFieldState(fecha, false, 'Selecciona tu fecha de nacimiento.');
+      setFieldState(fecha, false, "Selecciona tu fecha de nacimiento.");
       return false;
     }
     const edad = calcularEdad(val);
     if (isNaN(edad)) {
-      setFieldState(fecha, false, 'Fecha inválida.');
+      setFieldState(fecha, false, "Fecha inválida.");
       return false;
     }
     if (edad < 18) {
-      setFieldState(fecha, false, 'Debes ser mayor de 18 años.');
+      setFieldState(fecha, false, "Debes ser mayor de 18 años.");
       return false;
     }
     setFieldState(fecha, true);
@@ -212,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function validarRegion() {
     const val = region.value;
     if (!val) {
-      setFieldState(region, false, 'Selecciona una región.');
+      setFieldState(region, false, "Selecciona una región.");
       return false;
     }
     setFieldState(region, true);
@@ -222,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function validarComuna() {
     const val = comuna.value;
     if (!val) {
-      setFieldState(comuna, false, 'Selecciona una comuna.');
+      setFieldState(comuna, false, "Selecciona una comuna.");
       return false;
     }
     setFieldState(comuna, true);
@@ -234,33 +242,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const opciones = comunasPorRegion[selRegion] || [];
     comuna.innerHTML = '<option value="">Seleccione una comuna</option>';
     for (const c of opciones) {
-      const opt = document.createElement('option');
-      opt.value = c.toLowerCase().replace(/\s+/g, '-');
+      const opt = document.createElement("option");
+      opt.value = c.toLowerCase().replace(/\s+/g, "-"); // slug
       opt.textContent = c;
       comuna.appendChild(opt);
     }
-    comuna.classList.remove('is-valid', 'is-invalid');
+    comuna.classList.remove("is-valid", "is-invalid");
   }
 
-  run.addEventListener('input', validarRUN);
-  nombre.addEventListener('input', validarNombre);
-  correo.addEventListener('input', validarCorreo);
-  confirmarCorreo.addEventListener('input', validarConfirmarCorreo);
-  password.addEventListener('input', validarPassword);
-  confirmarPassword.addEventListener('input', validarConfirmarPassword);
-  telefono.addEventListener('input', validarTelefono);
-  fecha.addEventListener('change', validarFecha);
-  region.addEventListener('change', () => {
+  // --- Listeners ---
+  run.addEventListener("input", validarRUN);
+  nombre.addEventListener("input", validarNombre);
+  correo.addEventListener("input", validarCorreo);
+  confirmarCorreo.addEventListener("input", validarConfirmarCorreo);
+  password.addEventListener("input", validarPassword);
+  confirmarPassword.addEventListener("input", validarConfirmarPassword);
+  telefono.addEventListener("input", validarTelefono);
+  fecha.addEventListener("change", validarFecha);
+  region.addEventListener("change", () => {
     poblarComunas();
     validarRegion();
     validarComuna();
   });
-  comuna.addEventListener('change', validarComuna);
+  comuna.addEventListener("change", validarComuna);
 
-  form.addEventListener('submit', async (e) => {
+  // --- Submit ---
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    mensaje.className = '';
-    mensaje.textContent = '';
+    mensaje.className = "";
+    mensaje.textContent = "";
 
     const checks = [
       validarRUN(),
@@ -276,50 +286,68 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     if (!checks.every(Boolean)) {
-      mensaje.className = 'alert alert-danger';
-      mensaje.textContent = 'Por favor corrige los campos marcados en rojo.';
-      const firstInvalid = form.querySelector('.is-invalid');
+      mensaje.className = "alert alert-danger";
+      mensaje.textContent = "Por favor corrige los campos marcados en rojo.";
+      const firstInvalid = form.querySelector(".is-invalid");
       if (firstInvalid) firstInvalid.focus();
       return;
     }
 
-    // 2) Payload: no guardamos campos de confirmación
-    const runId = run.value.replace(/[^0-9K]/gi, ''); // 12345678K (doc id)
+    // Datos limpios
+    const runNormalizado = run.value; // 12345678-K
+    const runId = runNormalizado.replace(/[^0-9K]/gi, ""); // 12345678K
+    const nombreVal = nombre.value.trim();
+    const correoVal = correo.value.trim().toLowerCase();
+
+    // Si quieres guardar el nombre visible de la comuna además del slug:
+    const comunaSlug = comuna.value;
+    const comunaLabel = comuna.options[comuna.selectedIndex]?.text || "";
+
     const payload = {
-      run: run.value,                         // "12345678-K"
-      nombre: nombre.value.trim(),
-      correo: correo.value.trim(),
+      run: runNormalizado,
+      nombre: nombreVal,
+      correo: correoVal,
       fecha: fecha.value,
       region: region.value,
-      comuna: comuna.value,
-      telefono: telefono.value ? telefono.value.replace(/\s+/g, '') : null,
-      // Nunca guardes la confirmación. Si guardas la clave, encripta/hashea en el servidor.
-      clave: password.value,                  // solo para DEMO; NO recomendado en producción
+      comuna: comunaSlug,
+      comunaLabel,
+      telefono: telefono.value ? telefono.value.replace(/\s+/g, "") : null,
+      // SOLO DEMO: no guardar contraseñas planas en producción
+      clave: password.value,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
     try {
-      mensaje.className = 'alert alert-info';
-      mensaje.textContent = 'Guardando…';
+      mensaje.className = "alert alert-info";
+      mensaje.textContent = "Guardando…";
 
-      // 3) setDoc con merge para “reflejar cambios” si ya existe el doc
-      await setDoc(doc(db, 'usuarios', runId), payload, { merge: true });
+      // Guardar en Firestore
+      await setDoc(doc(db, "usuarios", runId), payload, { merge: true });
 
-      mensaje.className = 'alert alert-success';
-      mensaje.textContent = 'Guardado correctamente en Firestore.';
-      // form.reset(); // opcional
-      // [...form.elements].forEach(el => el.classList?.remove('is-valid','is-invalid'));
+      // (Opcional) si también quieres tu flujo addUser, descomenta e importa:
+      // await addUser(payload);
+
+      mensaje.className = "alert alert-success";
+      mensaje.textContent = "Guardado correctamente. Redirigiendo…";
+
+      // Redirección según correo
+      setTimeout(() => {
+        if (correoVal === "admin@duoc.cl") {
+          window.location.href = `../page/sesion.html?nombre=${encodeURIComponent(nombreVal)}`;
+        } else {
+          window.location.href = `../../index.html?nombre=${encodeURIComponent(nombreVal)}`;
+        }
+      }, 800);
+
     } catch (err) {
-      console.error('Firestore write error:', err);
-      mensaje.className = 'alert alert-danger';
-      mensaje.textContent = 'No se pudo guardar en Firestore: ' + (err?.message || err);
+      console.error("Firestore write error:", err);
+      mensaje.className = "alert alert-danger";
+      mensaje.textContent = "No se pudo guardar en Firestore: " + (err?.message || err);
     }
   });
 
   // Inicialización
   poblarComunas();
-
-  // Debug útil: verificar que estás en el proyecto correcto
-  console.log('Firebase projectId:', app.options.projectId);
+  console.log("Firebase projectId:", app.options.projectId);
 });
