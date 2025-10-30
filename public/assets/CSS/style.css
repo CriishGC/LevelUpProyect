@@ -6,7 +6,6 @@
   --accent-green: #39FF14;
 }
 
-/* Base styles */
 body {
   background: var(--bg-main);
   color: var(--text-main);
@@ -59,13 +58,58 @@ body {
   color: #fff;
 }
 
+.navbar-electric .nav {
+  align-items: center;
+}
+.navbar-electric .nav {
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  flex-wrap: nowrap; /* evitar que el ul haga wrap cuando el espacio es limitado */
+}
+
+.navbar-electric .nav .nav-search .form-control {
+  max-width: 200px;
+}
+.navbar-electric .nav .nav-search .btn {
+  padding: .375rem .6rem;
+}
+
+/* Limitar el ancho del nombre de usuario en el header para evitar que empuje la barra */
+.navbar-electric #header-nombre-usuario {
+  display: inline-block;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+/* Asegurar que los elementos del nav no expandan su contenedor en pantallas pequeñas */
+.navbar-electric .nav .nav-item {
+  white-space: nowrap;
+}
+
+@media (max-width: 991px) {
+  /* En pantallas medias/pequeñas, permitir que la navegación comience a la izquierda
+     para evitar colisiones con el área de usuario */
+  .navbar-electric .nav {
+    justify-content: flex-start;
+  }
+  .navbar-electric .nav .nav-search .form-control {
+    max-width: 140px;
+  }
+  .navbar-electric #header-nombre-usuario {
+    max-width: 110px;
+  }
+}
+
 .hero-wireframe {
   background: #18181c;
   border-radius: 20px;
   box-shadow: 0 0 16px #1E90FF33;
 }
 
-/* WhatsApp Footer Button */
 .btn-whatsapp-footer {
   box-shadow: 0 0 10px #39FF1444;
   transition: background 0.2s, color 0.2s;
@@ -80,7 +124,6 @@ body {
   color: #000 !important;
 }
 
-/* Equipo lista */
 .equipo-lista {
   display: flex;
   justify-content: center;
@@ -129,7 +172,6 @@ body {
   font-family: 'Orbitron', Arial, sans-serif;
 }
 
-/* Product card styles */
 .product-card {
   border-radius: 1rem;
   overflow: hidden;
@@ -224,6 +266,10 @@ body {
   ::-webkit-scrollbar {
     display: none;
   }
+
+  .navbar-electric #header-nombre-usuario {
+    display: none;
+  }
 }
 
 @media (max-width: 400px) {
@@ -238,14 +284,12 @@ body {
   }
 }
 
-/* Images always fluid */
 img, .img-fluid {
   max-width: 100%;
   height: auto;
   object-fit: cover;
 }
 
-/* Footer */
 footer {
   font-size: 0.95rem;
   padding: 1.5rem 0;
@@ -261,7 +305,6 @@ footer .d-flex.align-items-end {
   align-items: flex-end !important;
 }
 
-/* Inputs and cards: full width on mobile */
 @media (max-width: 575px) {
   .card {
     padding: 0.7rem !important;
@@ -273,7 +316,6 @@ footer .d-flex.align-items-end {
   }
 }
 
-/* No scroll bar on mobile for cleaner look */
 @media (max-width: 575px) {
   ::-webkit-scrollbar {
     display: none;

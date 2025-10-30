@@ -3,7 +3,6 @@ import {
   getFirestore, collection, query, where, limit, getDocs
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-// 1) Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
   authDomain: "tiendalevelup-ccd23.firebaseapp.com",
@@ -16,13 +15,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// 2) Rutas por rol (ajusta a tu estructura real)
 const RUTAS_POR_ROL = {
   admin  : "../page/index_admin.html",
   usuario: "../../index.html"
 };
 
-// 3) Helpers DOM
 const $ = (id) => document.getElementById(id);
 
 function ensureMsgBox() {
@@ -57,7 +54,6 @@ function clearFieldErrors() {
   if (contrasenaError) contrasenaError.textContent = "";
 }
 
-// 4) Lógica de login con Firestore (usa datos guardados)
 async function iniciarSesionConFirestore(correo, password) {
   const correoVal = (correo || "").trim().toLowerCase();
   const claveVal  = (password || "").trim();
@@ -92,7 +88,6 @@ async function iniciarSesionConFirestore(correo, password) {
   };
 }
 
-// 5) Guardar sesión (opcional)
 function guardarSesion(usuario) {
   localStorage.setItem("lvlup_user", JSON.stringify({
     id: usuario.id,
@@ -102,7 +97,6 @@ function guardarSesion(usuario) {
   }));
 }
 
-// 6) Submit del formulario
 document.addEventListener("DOMContentLoaded", () => {
   const form        = $("loginForm");
   const inputCorreo = $("correo");
@@ -135,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const msg = err?.message || "No se pudo iniciar sesión.";
         setMsg("danger", msg);
 
-        // Marcar campos según el error
         if (msg.includes("Correo inválido")) {
           inputCorreo?.classList.add("is-invalid");
           if (correoError) correoError.textContent = "Ingresa un correo válido.";
@@ -160,7 +153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn('No se encontró el formulario con id="loginForm". Verifica el HTML.');
   }
 
-  // Handler "¿Olvidaste tu contraseña?"
   const btnForgot = $("sendForgot");
   const forgotEmail = $("forgotEmail");
   const forgotEmailError = $("forgotEmailError");
@@ -178,13 +170,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Aquí iría tu flujo real de recuperación (Auth/Backend). Por ahora mostramos feedback.
       if (forgotMessage) {
         forgotMessage.style.display = "block";
       }
     });
   }
 
-  // Debug
   console.log("Firebase projectId:", app.options.projectId);
 });
