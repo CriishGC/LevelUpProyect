@@ -49,9 +49,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       // Ajusta tu config acá si corresponde
       const firebaseConfig = {
-        apiKey: "AIzaSyBBT7jka7a-7v3vY19BlSajamiedLrBTN0",
-        authDomain: "tiendanombretienda.firebaseapp.com",
-        projectId: "tiendanombretienda",
+         apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
+         authDomain: "tiendalevelup-ccd23.firebaseapp.com",
+         projectId: "tiendalevelup-ccd23",
       };
       // Evita re-inicializar si ya está
       if (!firebase.apps || !firebase.apps.length) {
