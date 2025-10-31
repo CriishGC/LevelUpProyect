@@ -18,6 +18,7 @@ const firebaseConfig = {
   storageBucket: "tiendalevelup-ccd23.appspot.com",
   messagingSenderId: "788122901795",
   appId: "1:788122901795:web:1feabe6474cd2b44ef4096",
+  
   measurementId: "G-QHQ3RM5FD8"
 };
 
