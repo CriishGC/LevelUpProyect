@@ -1,35 +1,55 @@
-<header class="navbar-electric py-3">
-	<div class="container d-flex justify-content-between align-items-center">
-		<a href="/index.html" class="d-flex align-items-center text-decoration-none me-3">
-			<img src="/assets/img/logo.png" alt="Logo" width="80" height="80" class="me-2">
-			<span class="fs-4 fw-bold font-orbitron text-white">Level-Up Gamer</span>
-		</a>
-		<nav class="flex-grow-1">
-			<ul class="nav gap-3 justify-content-center">
-				<li class="nav-item"><a class="nav-link text-white" href="/index.html">Inicio</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="/assets/page/catalogo.html">Productos</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="/assets/page/nosotros.html">Nosotros</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="/assets/page/blog.html">Blog</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="/assets/page/contacto.html">Contacto</a></li>
-				<li class="nav-item nav-search">
-					<form class="d-flex align-items-center" role="search" onsubmit="event.preventDefault();">
-						<input class="form-control me-2" type="search" placeholder="Buscar..." aria-label="Buscar" id="searchInput">
-						<button class="btn btn-outline-light" type="submit">
-							<i class="bi bi-search"></i>
-						</button>
-					</form>
-				</li>
-			</ul>
-		</nav>
-		<div class="d-flex align-items-center ms-auto gap-3">
-			<a href="/assets/page/perfilUsuario.html" class="text-white fs-5 d-flex align-items-center" style="text-decoration:none;" title="Perfil de usuario">
-				<i class="bi bi-person-circle"></i>
-				<span class="ms-1 d-none d-md-inline" id="header-nombre-usuario"></span>
-			</a>
-			<a href="/assets/page/carrito.html" class="text-white fs-5" style="text-decoration:none;">
-				<i class="bi bi-cart"></i>
-			</a>
-			<span class="text-white ms-2">Carrito (<span id="badge-carrito">0</span>)</span>
-		</div>
-	</div>
+<header class="header navbar-electric">
+  <!-- TOP: logo izquierda, buscador centrado y zona auth/carrito a la derecha -->
+  <div class="header-top container d-flex align-items-center justify-content-between">
+    <!-- Logo (mantengo href y la ruta de la imagen tal como estaban) -->
+    <a href="/index.html" class="brand d-flex align-items-center text-decoration-none">
+      <img src="/assets/img/logo.png" alt="Level-Up Gamer" class="logo-img">
+      <span class="site-title font-orbitron">Level-Up Gamer</span>
+    </a>
+
+    <!-- Formulario de búsqueda (IDs intactos: searchForm, searchInput, btnBuscar) -->
+    <form id="searchForm" class="search-form d-flex" role="search" onsubmit="event.preventDefault();">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="search"
+        placeholder="Buscar productos..."
+        aria-label="Buscar"
+      >
+      <button id="btnBuscar" class="btn-search" type="submit">Buscar</button>
+    </form>
+
+    <!-- Zona derecha: perfil + carrito (IDs intactos: header-nombre-usuario, badge-carrito) -->
+    <div class="auth-cart d-flex align-items-center gap-2">
+      <a href="/assets/page/perfilUsuario.html" class="profile-link d-flex align-items-center" title="Perfil de usuario">
+        <i class="bi bi-person-circle"></i>
+        <!-- con clase username para estilo, pero id preservado para scripts -->
+        <span id="header-nombre-usuario" class="username d-none d-md-inline"></span>
+      </a>
+
+      <a href="/assets/page/carrito.html" class="cart-link d-flex align-items-center cart-btn" title="Ver carrito">
+        <i class="bi bi-cart me-2"></i>
+        <span class="cart-text">Total: $<span id="badge-carrito">0</span></span>
+      </a>
+    </div>
+  </div>
+
+  <!-- NAV principal: links centrados; mantengo id dropdownCategorias -->
+  <nav class="nav-main">
+    <div class="container d-flex justify-content-center">
+      <ul class="nav-links d-flex align-items-center gap-4 list-unstyled mb-0">
+        <li><a href="/index.html" class="nav-link">Inicio</a></li>
+
+        <li class="dropdown">
+          <a href="/assets/page/catalogo.html" class="nav-link">Categorías ▾</a>
+          <div id="dropdownCategorias" class="dropdown-content" aria-hidden="false"></div>
+        </li>
+
+        <li><a href="/assets/page/ofertas.html" class="nav-link">Ofertas</a></li>
+        <li><a href="/assets/page/nosotros.html" class="nav-link">Nosotros</a></li>
+        <li><a href="/assets/page/blog.html" class="nav-link">Blog</a></li>
+        <li><a href="/assets/page/contacto.html" class="nav-link">Contacto</a></li>
+      </ul>
+    </div>
+  </nav>
 </header>
