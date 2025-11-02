@@ -1,9 +1,3 @@
-/* catologo.css
-   Estilos específicos para el catálogo y badge del carrito.
-   Nota: tu HTML referencia "../CSS/catologo.css" (con 'o' antes de 'logo'), por eso nombro este archivo igual.
-*/
-
-/* Variables locales (complementan tu style.css) */
 :root {
   --accent-blue: #1E90FF;
   --accent-green: #39FF14;
@@ -12,7 +6,6 @@
   --text-light: #fff;
 }
 
-/* Grid productos */
 #productos-lista { display: flex; flex-wrap: wrap; gap: 1rem; }
 .product-card { border-radius: 1rem; overflow: hidden; background: var(--card-bg); box-shadow: 0 2px 12px rgba(60,255,20,0.04); transition: transform .18s; }
 .product-card:hover { transform: translateY(-6px); }

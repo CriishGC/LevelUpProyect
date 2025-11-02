@@ -1,28 +1,71 @@
-// Datos mockup de productos
-const PRODUCTOS = [
-  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Un clásico juego de estrategia donde los jugadores compiten por colonizar y expandirse en la isla de Catan. Ideal para 3-4 jugadores y perfecto para noches de juego en familia o con amigos.", img:"catan2.jpg" },
-  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Un juego de colocación de fichas donde los jugadores construyen el paisaje alrededor de la fortaleza medieval de Carcassonne. Ideal para 2-5 jugadores y fácil de aprender.", img:"carcassonne.jpg" },
-  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Ofrece una experiencia de juego cómoda con botones mapeables y una respuesta táctil mejorada. Compatible con consolas Xbox y PC.", img:"xbox_controller.webp" },
-  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Proporcionan un sonido envolvente de calidad con un micrófono desmontable y almohadillas de espuma viscoelástica para mayor comodidad durante largas sesiones de juego.", img:"hyperx_cloud_ii_red_1_main.webp" },
-  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"La consola de última generación de Sony, que ofrece gráficos impresionantes y tiempos de carga ultrarrápidos para una experiencia de juego inmersiva.", img:"ps5.webp" },
-  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Un potente equipo diseñado para los gamers más exigentes, equipado con los últimos componentes para ofrecer un rendimiento excepcional en cualquier juego.", img:"rog_strix.jpg" },
-  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Diseñada para el máximo confort, esta silla ofrece un soporte ergonómico y personalización ajustable para sesiones de juego prolongadas.", img:"sillageimer.jpg" },
-  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Con sensor de alta precisión y botones personalizables, este mouse es ideal para gamers que buscan un control preciso y personalización.", img:"g502-heroe.jpg" },
-  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Ofrece un área de juego amplia con iluminación RGB personalizable, asegurando una superficie suave y uniforme para el movimiento del mouse.", img:"mauspad.jpg" },
-  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Una camiseta cómoda y estilizada, con la posibilidad de personalizarla con tu gamer tag o diseño favorito.", img:"poleraLevel.png" }
-];
 
 function formateaCLP(n){ return n.toLocaleString("es-CL")+" CLP"; }
 
-// Muestra catálogo en página de catálogo (catalogo.html)
+function getProductPool() {
+  const src = (window.productosGlobal && window.productosGlobal.length) ? window.productosGlobal
+    : (window.PRODUCTOS && window.PRODUCTOS.length) ? window.PRODUCTOS
+    : (window.PRODUCTOS_MOCK && window.PRODUCTOS_MOCK.length) ? window.PRODUCTOS_MOCK
+    : [];
+  // Normalizar cada producto para tener campos previsibles
+  return src.map(normalizeProduct);
+}
+
+// Normaliza distintos esquemas de producto a un shape común
+function normalizeProduct(p) {
+  if (!p || typeof p !== 'object') return {};
+  const id = p.id || p.cod || p.codigo || p._id || (p.codigo_producto && String(p.codigo_producto)) || null;
+  const cod = p.cod || p.codigo || p.id || id || null;
+  const nombre = p.nombre || p.name || p.title || p.nombreProducto || '';
+  const precio = Number(p.precio || p.price || p.valor || p.priceCLP || 0) || 0;
+  const desc = p.desc || p.descripcion || p.description || p.detalle || '';
+  const cat = p.cat || p.categoria || p.category || p.tipo || 'Sin categoría';
+  // imagen puede venir en varios campos
+  const candidate = p.imagen || p.img || p.imagenURL || p.imagen_url || p.image || p.imageURL || (p.images && p.images[0]) || '';
+  const img = (typeof candidate === 'string') ? candidate : (Array.isArray(candidate) && candidate.length ? candidate[0] : '');
+  return {
+    _raw: p,
+    id: id,
+    cod: cod,
+    nombre: nombre,
+    precio: precio,
+    desc: desc,
+    cat: cat,
+    imagen: img,
+    img: img
+  };
+}
+
+// Resolver ruta de imagen para un producto (acepta URL absoluta o nombre de archivo)
+function resolveProductImage(p) {
+  if (!p) return 'https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen';
+  let candidate = p.imagen || p.img || p.imagenURL || p.imagen_url || p.image || p.imageURL || p.imagenes || p.images || '';
+  // si es array, tomar primero
+  if (Array.isArray(candidate)) {
+    candidate = candidate.length ? candidate[0] : '';
+  }
+  // si viene como objeto con campo url / path
+  if (candidate && typeof candidate === 'object') {
+    candidate = candidate.url || candidate.path || candidate.storagePath || '';
+  }
+  const c = (typeof candidate === 'string') ? candidate.trim() : '';
+  if (!c) return 'https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen';
+  // si ya es URL absoluta (http, https, data) o Firebase storage public URL
+  if (/^(https?:)?\/\//i.test(c) || /firebasestorage\.googleapis\.com/i.test(c)) return c;
+  // si empieza con slash, tratar como ruta absoluta en el servidor
+  if (/^\//.test(c)) return c;
+  // otherwise, assume it's a filename stored under /assets/img/ and return an absolute path so it's valid from any page
+  return `/assets/img/${c}`;
+}
+
 function renderCatalogoMockup(){
   const cont = document.getElementById("productos-lista");
   if (!cont) return;
-  cont.innerHTML = PRODUCTOS
+  const pool = getProductPool();
+  cont.innerHTML = pool
     .map(p => `
       <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
         <div class="card bg-secondary text-light h-100 product-card">
-          <img src="../img/${p.img}" class="card-img-top" alt="${p.nombre}">
+          <img src="${resolveProductImage(p)}" class="card-img-top" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen'">
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">${p.nombre}</h5>
             <span class="badge bg-primary mb-2">${p.cat}</span>
@@ -40,11 +83,12 @@ function renderCatalogoMockup(){
 function renderIndexCatalogoMockup() {
   const cont = document.getElementById("grid-productos");
   if (!cont) return;
-  cont.innerHTML = PRODUCTOS
+  const pool2 = getProductPool();
+  cont.innerHTML = pool2
     .map(p => `
       <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
         <div class="card bg-secondary text-light h-100 product-card">
-          <img src="assets/img/${p.img}" class="card-img-top" alt="${p.nombre}">
+          <img src="${(p.imagen && (/^https?:\/\//i.test(p.imagen) ? p.imagen : 'assets/img/'+p.imagen)) || (p.img ? 'assets/img/'+p.img : 'https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen') }" class="card-img-top" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen'">
           <div class="card-body d-flex flex-column justify-content-center align-items-center">
             <span class="badge bg-primary mb-2">${p.cat}</span>
             <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
@@ -57,17 +101,39 @@ function renderIndexCatalogoMockup() {
 }
 
 // Muestra detalle de producto en product.html
-function renderDetalleProducto() {
+async function renderDetalleProducto() {
   const params = new URLSearchParams(window.location.search);
   const cod = params.get("cod");
-  const prod = PRODUCTOS.find(p => p.cod === cod);
+  let poolInit = getProductPool();
+  let prod = poolInit.find(p => p.cod === cod);
+
+  // Si no está en los mocks, intentar cargar desde Firestore (vía carrito.js helper)
+  if (!prod) {
+    // Intentar varias veces por si carrito.js aún se está inyectando
+    let attempts = 0;
+    while (!prod && attempts < 8) {
+      attempts++;
+      try {
+        if (window && typeof window.loadProductosGlobalFromFirestore === 'function') {
+          await window.loadProductosGlobalFromFirestore().catch(() => {});
+        }
+        const pool = window.productosGlobal || window.PRODUCTOS_MOCK || window.PRODUCTOS || [];
+        prod = pool.find(p => ((p.cod && String(p.cod) === String(cod)) || (p.codigo && String(p.codigo) === String(cod)) || (p.id && String(p.id) === String(cod))));
+        if (prod) break;
+      } catch (e) {
+        console.warn('Error buscando producto en Firestore (intento ' + attempts + '):', e);
+      }
+      // esperar un poco antes del siguiente intento
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
   if (!prod) return;
 
   // Rellena los elementos visuales
   const img = document.getElementById("main-img");
   if (img) {
-    img.src = "../img/" + prod.img;
-    img.alt = prod.nombre;
+    img.src = resolveProductImage(prod);
+    img.alt = prod.nombre || '';
   }
   const title = document.getElementById("product-title");
   if (title) title.textContent = prod.nombre;
@@ -79,20 +145,24 @@ function renderDetalleProducto() {
   if (bread) bread.textContent = prod.nombre;
 
   // Productos relacionados (solo visual)
-  let relacionados = PRODUCTOS.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
+  let poolRel = getProductPool();
+  let relacionados = poolRel.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
   if (relacionados.length < 4) {
+    const poolAll = getProductPool();
     relacionados = [
       ...relacionados,
-      ...PRODUCTOS.filter(p => p.cod !== prod.cod && !relacionados.includes(p))
+      ...poolAll.filter(p => p.cod !== prod.cod && !relacionados.includes(p))
     ].slice(0, 4);
   }
   const related = document.getElementById("related-products");
   if (related) {
-    related.innerHTML = relacionados.map(p => `
+    related.innerHTML = relacionados.map(p => {
+      const src = resolveProductImage(p);
+      return `
       <div class="col-sm-6 col-lg-3">
-        <a href="product.html?cod=${p.cod}" class="text-decoration-none">
+        <a href="product.html?cod=${encodeURIComponent(p.cod || p.id || '')}" class="text-decoration-none">
           <div class="card bg-secondary text-light h-100 product-card border border-primary">
-            <img src="../img/${p.img}" class="card-img-top" alt="${p.nombre}">
+            <img src="${src}" class="card-img-top" alt="${(p.nombre||'')}">
             <div class="card-body text-center">
               <span class="d-block fw-bold font-orbitron">${p.nombre}</span>
               <span class="d-block">${formateaCLP(p.precio)}</span>
@@ -100,7 +170,74 @@ function renderDetalleProducto() {
           </div>
         </a>
       </div>
-    `).join('');
+    `}).join('');
+  }
+
+  // Añadir handler para el botón "Añadir al carrito" en la página de detalle
+  const btnAdd = document.getElementById('add-to-cart');
+  if (btnAdd) {
+    btnAdd.onclick = function () {
+      const qtyEl = document.getElementById('qty');
+      let qty = qtyEl ? (Number(qtyEl.value) || 1) : 1;
+      // Llamamos agregarAlCarrito qty veces (agregarAlCarrito no acepta qty directo)
+      if (window && typeof window.agregarAlCarrito === 'function') {
+        try {
+          // Normalizar campos del producto (Firestore puede usar id / codigo / cod y imagen/imagen_url/img)
+          const idVal = prod.id || prod.cod || prod.codigo || prod.codigoProducto || prod._id || prod.ID || prod.codigo_producto || null;
+          const nombreVal = prod.nombre || prod.name || prod.title || '';
+          const precioVal = Number(prod.precio || prod.price || prod.valor || 0) || 0;
+          const imagenVal = prod.imagen || prod.img || prod.imagenURL || prod.imagen_url || prod.image || '';
+
+          if (!idVal) {
+            console.warn('agregarAlCarrito desde detalle: producto sin id detectado, objeto:', prod);
+            // Intentar usar nombre como id de último recurso
+          }
+
+          window.agregarAlCarrito({ id: idVal || nombreVal, nombre: nombreVal, precio: precioVal, imagen: imagenVal }, qty);
+        } catch (e) {
+          console.warn('Error agregando al carrito desde detalle:', e);
+        }
+      } else {
+        // Si el script no está cargado, inyectarlo dinámicamente y luego intentar la operación
+        try {
+          if (!document.querySelector('script[src="/assets/js/carrito.js"]')) {
+            const s = document.createElement('script');
+            s.src = '/assets/js/carrito.js';
+            s.async = true;
+            s.onload = () => {
+              try {
+                if (window && typeof window.agregarAlCarrito === 'function') {
+                  window.agregarAlCarrito({ id: prod.cod, nombre: prod.nombre, precio: prod.precio, imagen: prod.img }, qty);
+                }
+              } catch (e) { console.warn('Error agregando al carrito tras cargar script:', e); }
+            };
+            s.onerror = () => {
+              if (typeof toast === 'function') toast('No se pudo agregar al carrito (no se pudo cargar el script).');
+              else alert('No se pudo agregar al carrito (no se pudo cargar el script).');
+            };
+            document.head.appendChild(s);
+          } else {
+            // Si ya había tag <script> pero la función no existe, esperar un poco y reintentar
+            const attempts = 0;
+            const retry = (n) => {
+              if (window && typeof window.agregarAlCarrito === 'function') {
+                window.agregarAlCarrito({ id: prod.cod, nombre: prod.nombre, precio: prod.precio, imagen: prod.img }, qty);
+                return;
+              }
+              if (n < 10) setTimeout(() => retry(n+1), 150);
+              else {
+                if (typeof toast === 'function') toast('No se pudo agregar al carrito (script no disponible).');
+                else alert('No se pudo agregar al carrito (script no disponible).');
+              }
+            };
+            retry(0);
+          }
+        } catch (e) {
+          if (typeof toast === 'function') toast('No se pudo agregar al carrito (error).');
+          else alert('No se pudo agregar al carrito (error).');
+        }
+      }
+    };
   }
 }
 

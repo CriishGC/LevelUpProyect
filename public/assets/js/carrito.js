@@ -1,17 +1,12 @@
-// carrito.js (adaptado para obtener información de productos desde Firestore - Firebase v8 compat)
-// Asegúrate de incluir en tu HTML los scripts CDN v8 (ver arriba) antes de este script.
-//
-// Configuración y uso:
-//  - Incluye los <script> de Firebase v8 antes de este archivo.
-//  - Este archivo inicializa Firebase (si no está inicializado) y usa la colección 'productos'.
-//  - Conserva estado del carrito en localStorage (clave: 'carrito') y sincroniza metadata con Firestore.
-//
-// Reemplaza tu carrito.js por este archivo o pégalo en tu proyecto.
+if (window.__LVUP_CARRITO_LOADED) {
+  console.debug('carrito.js ya estaba cargado, saltando ejecución repetida.');
+} else {
+  window.__LVUP_CARRITO_LOADED = true;
+  (function(){
+  "use strict";
 
-'use strict';
-
-// --- CONFIGURACIÓN FIREBASE (usa tu config completa) ---
-const firebaseConfig = {
+  // Evitar redeclaración si el script se carga más de una vez: almacenar config en window
+  window.__LVUP_FIREBASE_CONFIG = window.__LVUP_FIREBASE_CONFIG || {
   apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
   authDomain: "tiendalevelup-ccd23.firebaseapp.com",
   projectId: "tiendalevelup-ccd23",
@@ -22,17 +17,17 @@ const firebaseConfig = {
   measurementId: "G-QHQ3RM5FD8"
 };
 
-// --- Claves y estado ---
-const STORAGE_KEY = 'carrito';           // guarda [{ id, qty }, ...]
-const META_KEY = STORAGE_KEY + '_meta';  // guarda { id: { nombre, precio, imagen, stock } }
+var firebaseConfig = window.__LVUP_FIREBASE_CONFIG;
+
+const STORAGE_KEY = 'carrito';
+const META_KEY = STORAGE_KEY + '_meta';
 let carrito = [];
 let carritoMeta = {};
 let cuponAplicado = localStorage.getItem(STORAGE_KEY + '_cupon') || '';
 let firebaseEnabled = false;
 let db = null;
-const FIRESTORE_COLLECTION = 'productos'; // nombre de la colección en Firestore
+const FIRESTORE_COLLECTION = 'productos';
 
-// ----------------- Helpers -----------------
 function formateaCLP(n) {
   n = Number(n) || 0;
   return `$ ${n.toLocaleString('es-CL')}`;
@@ -65,7 +60,6 @@ function debugLog(...args) {
   // console.debug('[carrito.js]', ...args);
 }
 
-// ----------------- Meta / Persistencia -----------------
 function cargarMeta() {
   try {
     const raw = localStorage.getItem(META_KEY);
@@ -83,25 +77,21 @@ function persistirMeta() {
   }
 }
 
-// ----------------- Carrito: carga, persistencia y migración -----------------
 function cargarCarrito() {
   cargarMeta();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
 
-    // Detectar formato antiguo: objetos con 'precio' o 'nombre'
     const esFormatoAntiguo = Array.isArray(parsed) && parsed.length > 0 &&
       (parsed[0].precio !== undefined || parsed[0].nombre !== undefined);
 
     if (esFormatoAntiguo) {
-      // Migrar agrupando por id/cod y construir meta a partir de esos objetos
       const mapa = new Map();
       parsed.forEach(p => {
         const id = p.id || p.cod || p.codigo || null;
         if (!id) return;
         mapa.set(String(id), (mapa.get(String(id)) || 0) + 1);
-        // Guardar meta (último valor prevalece)
         carritoMeta[String(id)] = {
           nombre: p.nombre || carritoMeta[String(id)]?.nombre || String(id),
           precio: Number(p.precio) || carritoMeta[String(id)]?.precio || 0,
@@ -116,7 +106,6 @@ function cargarCarrito() {
       return carrito;
     }
 
-    // Si ya está en el formato nuevo
     if (Array.isArray(parsed)) {
       carrito = parsed.map(i => ({ id: String(i.id), qty: Math.max(1, Number(i.qty) || 1) }));
       return carrito;
@@ -138,12 +127,9 @@ function persistirCarrito() {
   }
 }
 
-// ----------------- Firebase: inicialización y sincronización -----------------
 function initFirebaseIfAvailable() {
-  // Requiere que el SDK compat (window.firebase) esté cargado en la página antes de este script.
   if (window.firebase && firebase.initializeApp) {
     try {
-      // Inicializar sólo si no está ya inicializado
       if (!firebase.apps || !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
@@ -162,7 +148,6 @@ function initFirebaseIfAvailable() {
   }
 }
 
-// intenta obtener documentos de Firestore por ids (intenta doc(id) y luego consulta por campos cod/codigo)
 async function fetchProductsFromFirestoreByIds(ids = []) {
   if (!firebaseEnabled || !db) return {};
   const out = {};
@@ -171,21 +156,18 @@ async function fetchProductsFromFirestoreByIds(ids = []) {
 
   const promises = uniqueIds.map(async id => {
     try {
-      // 1) Intentar como document id
       const docRef = db.collection(FIRESTORE_COLLECTION).doc(id);
       const docSnap = await docRef.get();
       if (docSnap && docSnap.exists) {
         out[String(id)] = { id: docSnap.id, ...docSnap.data() };
         return;
       }
-      // 2) Buscar por campo 'cod'
       let q = await db.collection(FIRESTORE_COLLECTION).where('cod', '==', id).limit(1).get();
       if (!q.empty && q.docs.length) {
         const d = q.docs[0];
         out[String(id)] = { id: d.id, ...d.data() };
         return;
       }
-      // 3) Buscar por campo 'codigo'
       q = await db.collection(FIRESTORE_COLLECTION).where('codigo', '==', id).limit(1).get();
       if (!q.empty && q.docs.length) {
         const d = q.docs[0];
@@ -204,7 +186,6 @@ async function fetchProductsFromFirestoreByIds(ids = []) {
   return out;
 }
 
-// Sincroniza metadata del carrito con Firestore: actualiza carritoMeta con precio/imagen/stock/nombre
 async function enrichCarritoFromFirestore() {
   if (!firebaseEnabled || !db) return;
   cargarCarrito();
@@ -217,7 +198,6 @@ async function enrichCarritoFromFirestore() {
   Object.keys(mapa).forEach(id => {
     const d = mapa[id];
     if (!d) return;
-    // Campos posibles: nombre, precio, imagen, img, cod, stock
     const nombre = d.nombre || d.name || d.title || d.nombreProducto || carritoMeta[id]?.nombre || d.cod || id;
     const precio = Number(d.precio || d.price || 0) || 0;
     const imagen = d.imagen || d.img || d.imagenURL || d.imagen_url || '';
@@ -239,7 +219,6 @@ async function enrichCarritoFromFirestore() {
   }
 }
 
-// Cargar todos los productos desde Firestore (guarda en window.productosGlobal)
 async function loadProductosGlobalFromFirestore() {
   if (!firebaseEnabled || !db) return [];
   try {
@@ -253,10 +232,17 @@ async function loadProductosGlobalFromFirestore() {
   }
 }
 
-// ----------------- Operaciones del carrito -----------------
-function agregarAlCarrito(prodOrId) {
+function agregarAlCarrito(prodOrId, qtyParam = 1) {
   cargarCarrito();
   cargarMeta();
+
+  // Determine cantidad a agregar
+  let qtyToAdd = 1;
+  if (typeof prodOrId === 'object' && prodOrId !== null && prodOrId.qty !== undefined) {
+    qtyToAdd = Math.max(1, Number(prodOrId.qty) || 1);
+  } else {
+    qtyToAdd = Math.max(1, Number(qtyParam) || 1);
+  }
 
   let id, nombre, precio, imagen, stock;
   if (typeof prodOrId === 'string') {
@@ -285,25 +271,24 @@ function agregarAlCarrito(prodOrId) {
 
   const idx = carrito.findIndex(i => String(i.id) === String(id));
   if (idx >= 0) {
-    // controlar stock si está presente
     const meta = carritoMeta[String(id)] || {};
     const stockAvailable = meta.stock;
-    const newQty = Number(carrito[idx].qty || 0) + 1;
+    const newQty = Number(carrito[idx].qty || 0) + qtyToAdd;
     if (stockAvailable !== undefined && stockAvailable !== null && newQty > stockAvailable) {
       toast('No hay suficiente stock disponible.');
       return;
     }
     carrito[idx].qty = newQty;
   } else {
-    carrito.push({ id: String(id), qty: 1 });
+    // Agrega con qtyToAdd
+    carrito.push({ id: String(id), qty: qtyToAdd });
   }
 
   persistirCarrito();
   actualizarCarritoUI();
   const nameForToast = nombre || (carritoMeta[String(id)] && carritoMeta[String(id)].nombre) || id;
-  toast(`"${nameForToast}" agregado al carrito`);
+  toast(`"${nameForToast}" agregado al carrito (${qtyToAdd})`);
 
-  // Si Firebase está disponible, intentar enriquecer metadata desde Firestore
   if (firebaseEnabled) enrichCarritoFromFirestore().catch(e => console.warn('enrich error', e));
 }
 
@@ -330,7 +315,6 @@ function eliminarItemCarrito(id) {
   renderCarrito();
 }
 
-// ----------------- Cálculo y render -----------------
 function calcularTotales() {
   cargarCarrito();
   cargarMeta();
@@ -382,9 +366,10 @@ function actualizarCarritoUI() {
   }
   const cartCountAlt = document.querySelector('#cart-count');
   if (cartCountAlt) cartCountAlt.textContent = totalItems ? String(totalItems) : '';
+  const carritoTotalEl = document.querySelector('.carrito-total');
+  if (carritoTotalEl) carritoTotalEl.textContent = formateaCLP(totalMoney);
 }
 
-// Renderiza la UI del carrito en #carrito-lista
 function renderCarrito() {
   const cont = document.getElementById('carrito-lista');
   const totalEl = document.getElementById('total');
@@ -408,7 +393,6 @@ function renderCarrito() {
     const nombre = p ? (p.nombre || p.name || p.title) : (meta.nombre || d.id);
     const precioStr = formateaCLP(d.precio);
 
-    // Imagen: prioriza fuente global (URL o nombre de archivo), luego metadata, luego placeholder
     let imgPath = '';
     if (p) {
       const candidate = p.imagen || p.img || p.imagenURL || p.imagen_url || '';
@@ -417,7 +401,6 @@ function renderCarrito() {
     if (!imgPath && meta.imagen) imgPath = isURL(meta.imagen) ? meta.imagen : `../img/${meta.imagen}`;
     if (!imgPath) imgPath = 'https://via.placeholder.com/200x150';
 
-    // stock y control de botones
     const stock = (d.stock !== null && d.stock !== undefined) ? d.stock : (meta.stock !== undefined ? meta.stock : null);
     const canIncrease = (stock === null) ? true : (d.qty < stock);
 
@@ -460,7 +443,6 @@ function renderCarrito() {
   if (duocValidacionEl) duocValidacionEl.innerHTML = '';
 }
 
-// ----------------- Cupones y checkout -----------------
 function aplicarCupon() {
   const input = document.getElementById('input-cupon');
   if (!input) return;
@@ -497,16 +479,13 @@ function checkout() {
   alert('Pago simulado exitoso. Gracias por tu compra.');
 }
 
-// ----------------- Inicialización -----------------
-document.addEventListener('DOMContentLoaded', async () => {
+async function __lvup_carrito_init() {
   cargarCarrito();
   cargarMeta();
   cuponAplicado = localStorage.getItem(STORAGE_KEY + '_cupon') || '';
 
-  // Inicializar Firebase si el SDK compat está presente
   initFirebaseIfAvailable();
 
-  // Si Firebase está activo, intentar enriquecer la metadata del carrito (precios, imagenes, stock)
   if (firebaseEnabled) {
     try {
       await loadProductosGlobalFromFirestore().catch(() => {});
@@ -516,13 +495,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // Listener de botón cupón
   const btnCupon = document.getElementById('btn-aplicar-cupon');
   if (btnCupon) btnCupon.addEventListener('click', aplicarCupon);
 
   actualizarCarritoUI();
 
-  // Renderizar con reintentos si productosGlobal puede venir después
   if (document.getElementById('carrito-lista')) {
     if (window.productosGlobal && window.productosGlobal.length) {
       renderCarrito();
@@ -541,9 +518,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       tryRender();
     }
   }
-});
+}
 
-// ----------------- Exposición global -----------------
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', __lvup_carrito_init);
+} else {
+  __lvup_carrito_init();
+}
+
 window.cargarCarrito = cargarCarrito;
 window.persistirCarrito = persistirCarrito;
 window.agregarAlCarrito = agregarAlCarrito;
@@ -555,3 +537,8 @@ window.checkout = checkout;
 window.aplicarCupon = aplicarCupon;
 window.enrichCarritoFromFirestore = enrichCarritoFromFirestore;
 window.loadProductosGlobalFromFirestore = loadProductosGlobalFromFirestore;
+// Alias por compatibilidad con páginas antiguas
+window.actualizarBadgeCarrito = actualizarCarritoUI;
+
+  })();
+}

@@ -90,7 +90,21 @@
 
     // Para producto:
     renderDetalleProducto && renderDetalleProducto();
-    actualizarBadgeCarrito();
+      // Intentar actualizar el badge del carrito cuando esté disponible
+      if (typeof window.actualizarBadgeCarrito === 'function') {
+        try { window.actualizarBadgeCarrito(); } catch (e) { /* noop */ }
+      } else {
+        let attempts = 0;
+        const tryBadge = () => {
+          if (typeof window.actualizarBadgeCarrito === 'function') {
+            try { window.actualizarBadgeCarrito(); } catch (e) { /* noop */ }
+            return;
+          }
+          attempts++;
+          if (attempts < 12) setTimeout(tryBadge, 200);
+        };
+        tryBadge();
+      }
   });
 </script>
 </body>

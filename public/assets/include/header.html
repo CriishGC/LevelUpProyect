@@ -1,13 +1,10 @@
 <header class="header navbar-electric">
-  <!-- TOP: logo izquierda, buscador centrado y zona auth/carrito a la derecha -->
   <div class="header-top ">
-    <!-- Logo (mantengo href y la ruta de la imagen tal como estaban) -->
     <a href="/index.html" class="brand d-flex align-items-center text-decoration-none">
       <img src="/assets/img/logo.png" alt="Level-Up Gamer" class="logo-img">
       <span class="site-title font-orbitron">Level-Up Gamer</span>
     </a>
 
-    <!-- Formulario de búsqueda (IDs intactos: searchForm, searchInput, btnBuscar) -->
     <form id="searchForm" class="search-form d-flex" role="search" onsubmit="event.preventDefault();">
       <input
         id="searchInput"
@@ -19,11 +16,9 @@
       <button id="btnBuscar" class="btn-search" type="submit">Buscar</button>
     </form>
 
-    <!-- Zona derecha: perfil + carrito (IDs intactos: header-nombre-usuario, badge-carrito) -->
     <div class="auth-cart">
       <a href="/assets/page/perfilUsuario.html" class="profile-link d-flex align-items-center" title="Perfil de usuario">
         <!--<i class="bi bi-person-circle"></i>-->
-        <!-- con clase username para estilo, pero id preservado para scripts -->
         <span id="header-nombre-usuario" class="username d-none d-md-inline"></span>
       </a>
     </div>
@@ -33,7 +28,6 @@
 </div>
   </div>
 
-  <!-- NAV principal: links centrados; mantengo id dropdownCategorias -->
   <nav class="nav-main">
     <div class=" vosabes">
       <ul class="nav-links">
@@ -50,12 +44,11 @@
         <li><a href="/assets/page/contacto.html" class="nav-link">Contacto</a></li>
       </ul>
 
-      <!-- Muevo nav-right dentro del mismo container para que quede en la misma fila que la UL -->
       <div class="nav-right">
-        <button class="btn-carrito" onclick="window.location.href='assets/page/carrito.html'"> <!--Cambiar a "carrito" para React Router-->
+        <a class="btn-carrito d-inline-flex align-items-center" href="/assets/page/carrito.html" role="button" aria-label="Carrito">
           <span class="carrito-icon">🛒</span>
-          Total: $<span class="carrito-total">0</span>
-        </button>
+          <span id="badge-carrito" class="badge bg-danger ms-1" aria-hidden="false"></span>
+        </a>
       </div>
     </div>
   </nav>

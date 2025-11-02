@@ -1,6 +1,3 @@
-/* ===========================
-   PALETA Y ESTILOS GLOBALES
-   =========================== */
 :root {
   --bg-main: #000;
   --text-main: #fff;
@@ -33,21 +30,16 @@ body {
   border-color: var(--accent-blue) !important;
 }
 
-/* ===========================
-   NAVBAR / HEADER (UPDATED)
-   =========================== */
 .navbar-electric {
   background: var(--accent-blue) !important;
   box-shadow: 0 2px 8px #1e90ff44;
 }
 
-/* Header structural styles (applied to the provided header HTML) */
 .header.navbar-electric {
   padding-top: 0.45rem;
   padding-bottom: 0;
 }
 
-/* Top row layout */
 .header-top {
   display: flex;
   justify-content: space-between;
@@ -56,7 +48,6 @@ body {
   align-items: center;
 }
 
-/* Brand / logo */
 .brand {
   gap: 0.6rem;
   color: var(--text-main);
@@ -79,7 +70,6 @@ body {
   margin-left: 0.5rem;
 }
 
-/* Search form centered */
 .search-form {
   width: 100%;
   max-width: 760px;
@@ -107,7 +97,6 @@ body {
   color: #9aa4b2;
 }
 
-/* Search button */
 .btn-search {
   display: inline-flex;
   align-items: center;
@@ -123,7 +112,6 @@ body {
 }
 .btn-search:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
 
-/* Auth & cart area */
 .auth-cart .profile-link,
 .auth-cart .cart-link {
   color: var(--text-main);
@@ -146,7 +134,6 @@ body {
   margin-left: 0.35rem;
 }
 
-/* Cart pill */
 .cart-btn {
   background: var(--accent-green);
   color: var(--bg-main);
@@ -166,7 +153,6 @@ body {
     display: flex;
     gap: 10px;
   }
-  /* Estilos para botones de login y signup */
   .btn-login {
     padding: 8px 20px;
     background: white;
@@ -176,7 +162,6 @@ body {
     cursor: pointer;
     font-size: 14px;
   }
-  /* Estilos para botón de registro */
   .btn-signup {
     padding: 8px 20px;
     background: #007bff;
@@ -186,16 +171,13 @@ body {
     cursor: pointer;
     font-size: 14px;
   }
-  /* Efecto hover en botones */
   .btn-login:hover {
     background: #f8f9fa;
   }
-  /* Efecto hover en botón de registro */
   .btn-signup:hover {
     background: #0056b3;
   }
 
-/* NAV primary */
 .nav-main {
   display: flex;
   justify-content: space-between;
@@ -210,11 +192,11 @@ body {
   margin: 0% auto;
 }
 .nav-links {
-  display: flex;            /* d-flex */
-  align-items: center;      /* align-items-center */
-  gap: 1.5rem;              /* gap-4 (Bootstrap gap-4 = 1.5rem) */
-  list-style: none;         /* list-unstyled */
-  padding-left: 0;          /* quitar indent del <ul> */
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+  padding-left: 0;
   margin: 0 auto;  
 }
 .nav-links .nav-link {
@@ -229,12 +211,12 @@ body {
 .nav-main .vosabes {
   display: flex;
   align-items: center;
-  justify-content: center; /* mantiene los enlaces centrados */
+  justify-content: center;
   gap: 1rem;
   width: 100%;
 }
 .nav-main .nav-right {
-    margin-left: auto;   /* empuja el carrito hasta la derecha del todo */
+    margin-left: auto;
 }
 .nav-links .nav-link:hover {
   color: var(--text-main);
@@ -242,7 +224,6 @@ body {
   border-radius: 6px;
 }
 
-/* Dropdown content (empty container for JS) */
 .dropdown-content {
   display: none;
   position: absolute;
@@ -255,17 +236,20 @@ body {
   z-index: 1200;
   padding: 0.5rem 0;
 }
-
-/* Optional visual: show dropdown on hover (JS may also control) */
+.dropdown-content .dropdown-item {
+  color: #fff;
+  padding: 10px 16px;
+  text-decoration: none;
+  display: block;
+  font-weight: 400;
+}
 .dropdown:hover .dropdown-content { display: block; }
 
-/* Preserve existing navbar-electric link styling */
 .navbar-electric .nav-link {
   color: #fff !important;
   font-weight: 500;
 }
 
-/* Limit username width (keeps prior rules) */
 .navbar-electric #header-nombre-usuario {
   display: inline-block;
   max-width: 160px;
@@ -275,12 +259,10 @@ body {
   vertical-align: middle;
 }
 
-/* Make sure nav items don't wrap */
 .navbar-electric .nav .nav-item {
   white-space: nowrap;
 }
 
-/* Responsive tweaks */
 @media (max-width: 991px) {
   .search-input { max-width: 320px; }
   .username { max-width: 100px; }
@@ -306,10 +288,9 @@ body {
   background: var(--bg-main);
 }
 
-/* Cambiar fondo de sidebar (izquierda) a azul */
 .dashboard-sidebar {
   width: 230px;
-  background: var(--accent-blue); /* AZUL */
+  background: var(--accent-blue);
   border-right: 2px solid var(--accent-blue);
   display: flex;
   flex-direction: column;
@@ -318,12 +299,11 @@ body {
   box-shadow: 0 0 18px 0 #1E90FF22;
 }
 
-/* Cambiar fondo de la cabecera principal (superior) a azul */
 .dashboard-main-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--accent-blue); /* AZUL */
+  background: var(--accent-blue);
   padding: 32px 32px 0 32px;
   font-size: 25px;
   font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
@@ -334,7 +314,6 @@ body {
   text-shadow: 0 0 10px #39FF1444;
 }
 
-/* Ajusta contraste de logo y menú en el sidebar azul */
 .dashboard-logo {
   display: flex;
   align-items: center;
@@ -370,7 +349,7 @@ body {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #fff; /* Blanco para contraste */
+  color: #fff;
   padding: 9px 24px;
   font-size: 15px;
   font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
@@ -436,7 +415,6 @@ body {
   filter: drop-shadow(0 0 4px #39FF1499);
 }
 
-/* El contenido sigue con fondo negro */
 .dashboard-main-content {
   flex: 1;
   display: flex;
@@ -476,9 +454,6 @@ body {
   border-bottom: none;
 }
 
-/* ==========================
-   RESPONSIVE ADMIN DASHBOARD
-   ========================== */
 @media (max-width: 900px) {
   .dashboard-container {
     flex-direction: column;
@@ -509,7 +484,6 @@ body {
   position: relative;
   z-index: 10;
 }
-  /* Botón del carrito */
 .btn-carrito {
     padding: 10px 20px;
     background: #28a745;
@@ -525,16 +499,13 @@ body {
     transition: all 0.3s ease;
     position: relative;
   }
-  /* Efecto hover en botón del carrito */
   .btn-carrito:hover {
     background: #218838;
     transform: translateY(-2px);
   }
-  /* Ícono del carrito */
   .carrito-icon {
     font-size: 16px;
   }
-  /* Total del carrito */
   .nav-link {
     text-decoration: none;
     color: #333;
@@ -552,7 +523,6 @@ body {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
-
 .miembro {
   background: #23272b;
   border-radius: 12px;
@@ -564,19 +534,16 @@ body {
   font-family: 'Orbitron', 'Roboto', Arial, sans-serif;
   margin-bottom: 1rem;
 }
-
 .miembro h3 {
   color: #39FF14;
   font-size: 1.15rem;
   margin-top: 0.5rem;
 }
-
 .miembro p {
   color: #fff;
   font-size: 1rem;
   margin-top: 0.5rem;
 }
-
 .miembro img {
   width: 90px;
   height: 90px;
@@ -585,13 +552,11 @@ body {
   margin-bottom: 0.5rem;
   box-shadow: 0 2px 8px rgba(44,62,80,0.15);
 }
-
 #equipo h2 {
   color: #39FF14;
   text-align: center;
   font-family: 'Orbitron', Arial, sans-serif;
 }
-
 .product-card {
   border-radius: 1rem;
   overflow: hidden;
@@ -604,15 +569,12 @@ body {
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 4px 24px rgba(60,255,20,0.10);
 }
-
 .card-img-top {
   width: 100%;
   height: 180px;
   object-fit: cover;
   border-radius: 1rem 1rem 0 0;
 }
-
-
   .hero-wireframe {
     padding: 1rem;
     border-radius: 12px;
@@ -643,4 +605,3 @@ body {
   .card-img-top {
     height: 120px !important;
   }
-  

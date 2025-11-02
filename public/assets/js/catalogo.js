@@ -58,8 +58,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         firebase.initializeApp(firebaseConfig);
       }
       const db = firebase.firestore();
-      const snap = await db.collection('producto').get();
-      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Intentamos leer la colección 'productos' (plural) primero; algunos proyectos usan 'producto'
+      let snap = null;
+      try {
+        snap = await db.collection('productos').get();
+        if (!snap || snap.empty) {
+          // Fallback a 'producto' si 'productos' está vacío o no existe
+          snap = await db.collection('producto').get();
+        }
+      } catch (e) {
+        console.warn('Error consultando colecciones productos/producto:', e);
+        snap = null;
+      }
+      const docs = (snap && snap.docs) ? snap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
 
       // Normaliza campos para que el renderer funcione igual que con el MOCK
       productosGlobal = docs.map(p => ({
