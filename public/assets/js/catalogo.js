@@ -1,26 +1,14 @@
-/***** Catálogo | Level-Up Gamer *****
+/***** Catálogo | Level-Up Gamer (integrado con tarjetas y dropdown de categorías)
  - Soporta productos MOCK y/o Firestore (si el SDK está presente)
  - Alineado con tu HTML:
    * #badge-carrito  (contador)
-   * #busqueda       (buscador)
+   * #busqueda / #buscador       (buscador)
    * #filtro-categoria, #filtro-min, #filtro-max
-   * #productos-lista (grid)
-   * window.limpiarFiltros()
+   * #productos-lista / #productosGrid (grid)
+   * #dropdownCategorias, #cardsCategorias (categorías visuales)
+   * #tituloProductos, #btnBuscar, #btnVerTodos
+   * window.limpiarFiltros(), window.mostrarTodosLosProductos(), window.limpiarCarrito()
 *************************************/
-
-// ===== Mock de productos (fallback si no hay Firestore) =====
-const PRODUCTOS_MOCK = [
-  { cod:"JM001", cat:"Juegos de Mesa", nombre:"Catan", precio:29990, desc:"Un clásico juego de estrategia...", img:"catan2.jpg" },
-  { cod:"JM002", cat:"Juegos de Mesa", nombre:"Carcassonne", precio:24990, desc:"Un juego de colocación de fichas...", img:"carcassonne.jpg" },
-  { cod:"AC001", cat:"Accesorios", nombre:"Controlador Inalámbrico Xbox Series X", precio:59990, desc:"Botones mapeables y respuesta táctil.", img:"xbox_controller.webp" },
-  { cod:"AC002", cat:"Accesorios", nombre:"Auriculares HyperX Cloud II", precio:79990, desc:"Sonido envolvente y micrófono desmontable.", img:"hyperx_cloud_ii_red_1_main.webp" },
-  { cod:"CO001", cat:"Consolas", nombre:"PlayStation 5", precio:549990, desc:"Gráficos de última generación.", img:"ps5.webp" },
-  { cod:"CG001", cat:"Computadores Gamers", nombre:"PC Gamer ASUS ROG Strix", precio:1299990, desc:"Rendimiento excepcional para gamers.", img:"rog_strix.jpg" },
-  { cod:"SG001", cat:"Sillas Gamers", nombre:"Secretlab Titan", precio:349990, desc:"Soporte ergonómico ajustable.", img:"sillageimer.jpg" },
-  { cod:"MS001", cat:"Mouse", nombre:"Logitech G502 HERO", precio:49990, desc:"Sensor de alta precisión y botones personalizables.", img:"g502-heroe.jpg" },
-  { cod:"MP001", cat:"Mousepad", nombre:"Razer Goliathus Extended Chroma", precio:29990, desc:"Área amplia con iluminación RGB.", img:"mauspad.jpg" },
-  { cod:"PP001", cat:"Poleras Personalizadas", nombre:"Polera 'Level-Up' Personalizada", precio:14990, desc:"Personaliza con tu gamer tag.", img:"poleraLevel.png" }
-];
 
 // ===== Utilidades =====
 const $  = (sel) => document.querySelector(sel);
@@ -31,23 +19,36 @@ const isURL = (s) => typeof s === 'string' && /^https?:\/\//i.test(s);
 // ===== Estado =====
 let productosGlobal = [];                               // origen: Firestore o MOCK
 let carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+let db = null; // Firestore DB si está disponible
 
 // ===== Elementos del DOM (todos opcionales para evitar caídas) =====
 const badgeCarrito     = $('#badge-carrito');
-const inputBusqueda    = $('#busqueda');
+const inputBusqueda    = $('#busqueda') || $('#buscador');
+const buscadorAlt      = $('#buscador'); // puede existir alternativamente
 const selCategoria     = $('#filtro-categoria');
 const inputMin         = $('#filtro-min');
 const inputMax         = $('#filtro-max');
-const gridProductos    = $('#productos-lista');
+const gridProductos    = $('#productos-lista') || $('#productosGrid');
+
+// Elementos del segundo script (opcional)
+const dropdownCategorias = $('#dropdownCategorias');
+const cardsCategorias    = $('#cardsCategorias');
+const tituloProductos    = $('#tituloProductos');
+const btnBuscar          = $('#btnBuscar');
+const btnVerTodos        = $('#btnVerTodos');
+const carritoTotalElem   = document.querySelector('.carrito-total');
+const btnCarrito         = document.querySelector('.btn-carrito');
 
 // ===== Inicialización =====
 document.addEventListener('DOMContentLoaded', async () => {
   actualizarCarritoUI();
+  actualizarCarritoTotal();
+  actualizarContadorItemsCarrito();
 
   // Si hay Firebase (compat) disponible, intenta cargar productos reales
   if (window.firebase && firebase.initializeApp) {
     try {
-      // Ajusta tu config acá si corresponde
+      // Ajusta tu config acá si corresponde (se intenta mantener compat con distintas configs)
       const firebaseConfig = {
          apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
          authDomain: "tiendalevelup-ccd23.firebaseapp.com",
@@ -57,19 +58,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!firebase.apps || !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
-      const db = firebase.firestore();
-      // Intentamos leer la colección 'productos' (plural) primero; algunos proyectos usan 'producto'
+      db = firebase.firestore();
+
+      // Intentamos leer la colección 'productos' (plural) primero; fallback a 'producto'
       let snap = null;
       try {
         snap = await db.collection('productos').get();
         if (!snap || snap.empty) {
-          // Fallback a 'producto' si 'productos' está vacío o no existe
           snap = await db.collection('producto').get();
         }
       } catch (e) {
         console.warn('Error consultando colecciones productos/producto:', e);
         snap = null;
       }
+
       const docs = (snap && snap.docs) ? snap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
 
       // Normaliza campos para que el renderer funcione igual que con el MOCK
@@ -81,9 +83,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         precio: Number(p.precio) || 0,
         // Compat: Firestore usa 'categoria'
         cat: p.categoria || p.cat || 'Sin categoría',
+        categoria: p.categoria || p.cat || 'Sin categoría', // para código que usa 'categoria'
         // Compat: Firestore usa 'imagen' (URL). Si no, usamos mock/placeholder.
         imagen: p.imagen || p.img || '',
-        img: p.img || '' // por si quieres reusar path local
+        img: p.img || '', // por si quieres reusar path local
+        stock: typeof p.stock !== 'undefined' ? Number(p.stock) : undefined
       }));
 
       if (!productosGlobal.length) {
@@ -99,25 +103,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     productosGlobal = [...PRODUCTOS_MOCK];
   }
 
+  // Inicial UI
   poblarCategorias(productosGlobal);
+  // Además de poblar el select, poblamos dropdown y cards si existen
+  const categoriasUnicas = obtenerCategoriasUnicas(productosGlobal);
+  if (dropdownCategorias) mostrarDropdownCategorias(categoriasUnicas);
+  if (cardsCategorias)    mostrarCardsCategorias(categoriasUnicas);
+
   renderProductos(productosGlobal);
 
-  // Eventos
+  // Eventos del buscador / filtros
   if (inputBusqueda) {
-    inputBusqueda.addEventListener('input', aplicarFiltros);
+    inputBusqueda.addEventListener('input', aplicarFiltrosDesdeInputs);
     inputBusqueda.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); aplicarFiltros(); }
+      if (e.key === 'Enter') { e.preventDefault(); aplicarFiltrosDesdeInputs(); }
     });
   }
-  if (selCategoria) selCategoria.addEventListener('change', aplicarFiltros);
-  if (inputMin)      inputMin.addEventListener('input', aplicarFiltros);
-  if (inputMax)      inputMax.addEventListener('input', aplicarFiltros);
+  if (buscadorAlt && buscadorAlt !== inputBusqueda) {
+    buscadorAlt.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') buscarProductos();
+    });
+  }
+  if (btnBuscar) btnBuscar.addEventListener('click', buscarProductos);
+  if (selCategoria) selCategoria.addEventListener('change', aplicarFiltrosDesdeInputs);
+  if (inputMin)      inputMin.addEventListener('input', aplicarFiltrosDesdeInputs);
+  if (inputMax)      inputMax.addEventListener('input', aplicarFiltrosDesdeInputs);
+  if (btnVerTodos)   btnVerTodos.addEventListener('click', mostrarTodosLosProductos);
+  if (btnCarrito)    btnCarrito.addEventListener('click', () => window.location.href = 'carrito.html');
 
   // Exponer limpiarFiltros global
   window.limpiarFiltros = limpiarFiltros;
+  window.mostrarTodosLosProductos = mostrarTodosLosProductos;
+  window.getProductosGlobal = () => productosGlobal;
+  window.getCarrito = () => carrito;
+
+  // Escuchar cambios de stock en tiempo real si hay Firestore
+  if (db) escucharCambiosStock();
+
+  console.log("Catálogo inicializado correctamente");
 });
 
-// ===== Render =====
+// ===== Render (mejorado para mostrar stock si existe) =====
 function renderProductos(lista) {
   if (!gridProductos) return;
 
@@ -144,6 +170,10 @@ function renderProductos(lista) {
     const cod = encodeURIComponent(p.cod || p.id || '');
     const detalleHref = `product.html?cod=${cod}`;
 
+    const stockHTML = (typeof p.stock !== 'undefined')
+      ? `<p class="producto-stock mb-2">Stock: ${p.stock}</p>`
+      : '';
+
     return `
       <div class="col-sm-6 col-md-4 col-lg-3 mb-4">
         <div class="card bg-secondary text-light h-100 product-card">
@@ -154,8 +184,8 @@ function renderProductos(lista) {
           <div class="card-body d-flex flex-column">
             <h5 class="card-title">${escapeHtml(p.nombre)}</h5>
             <span class="badge bg-primary mb-2">${escapeHtml(cat)}</span>
-            <p class="precio fw-bold mb-3">$${precio}</p>
-
+            <p class="precio fw-bold mb-1">$${precio}</p>
+            ${stockHTML}
             <div class="mt-auto d-grid gap-2">
               <a class="btn btn-outline-light" href="${detalleHref}">Ver detalle</a>
               <button class="btn btn-light text-dark btn-agregar" data-id="${p.id || p.cod}">🛒 Agregar</button>
@@ -174,6 +204,9 @@ function renderProductos(lista) {
       if (prod) {
         agregarAlCarrito(prod);
         toast(`"${prod.nombre}" agregado al carrito`);
+      } else {
+        // si no encontramos por objeto, intentamos tratar id como string y buscar en Firestore (si existe)
+        toast('Producto no encontrado', 'error');
       }
     });
   });
@@ -192,8 +225,9 @@ function poblarCategorias(lista) {
 }
 
 // ===== Filtros =====
-function aplicarFiltros() {
-  let term   = (inputBusqueda?.value || '').trim().toLowerCase();
+function aplicarFiltrosDesdeInputs() {
+  // Mantener compatibilidad con inputBusqueda o buscador alternativo
+  let term   = (inputBusqueda?.value || buscadorAlt?.value || '').trim().toLowerCase();
   let catVal = (selCategoria?.value || '').trim();
   let minVal = Number(inputMin?.value || '');
   let maxVal = Number(inputMax?.value || '');
@@ -224,24 +258,60 @@ function aplicarFiltros() {
 
 function limpiarFiltros() {
   if (inputBusqueda) inputBusqueda.value = '';
+  if (buscadorAlt) buscadorAlt.value = '';
   if (selCategoria)  selCategoria.value  = '';
   if (inputMin)      inputMin.value      = '';
   if (inputMax)      inputMax.value      = '';
   renderProductos(productosGlobal);
 }
 
-// ===== Carrito =====
-function agregarAlCarrito(prod) {
-  // Guardamos sólo campos necesarios
-  const item = {
-    id: prod.id || prod.cod,
-    nombre: prod.nombre,
-    precio: Number(prod.precio) || 0,
-    imagen: prod.imagen || prod.img || ''
-  };
-  carrito.push(item);
+// ===== Carrito (mejorado: cantidades y validación stock) =====
+function agregarAlCarrito(prodOrId) {
+  // prodOrId puede ser objeto producto o id string
+  let prod = typeof prodOrId === 'object' ? prodOrId : encontrarProductoPorId(prodOrId);
+  if (!prod) return;
+
+  // Obtener stock actual desde productosGlobal
+  const idx = productosGlobal.findIndex(p => (p.id || p.cod) == (prod.id || prod.cod));
+  const stockActual = (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined')
+    ? productosGlobal[idx].stock
+    : undefined;
+
+  if (typeof stockActual !== 'undefined' && stockActual <= 0) {
+    mostrarNotificacion('Producto sin stock disponible', 'error');
+    return;
+  }
+
+  // Buscar si ya existe en carrito
+  const itemId = prod.id || prod.cod;
+  let productoExistente = carrito.find(it => it.id === itemId);
+  if (productoExistente) {
+    productoExistente.cantidad = (productoExistente.cantidad || 1) + 1;
+  } else {
+    carrito.push({
+      id: itemId,
+      nombre: prod.nombre,
+      precio: Number(prod.precio) || 0,
+      imagen: prod.imagen || prod.img || '',
+      cantidad: 1
+    });
+  }
+
   persistirCarrito();
   actualizarCarritoUI();
+  actualizarCarritoTotal();
+  actualizarContadorItemsCarrito();
+
+  // Actualizar stock en Firestore si está disponible
+  if (db && prod.id) {
+    actualizarStockFirebase(prod.id, 1).catch(e => console.warn(e));
+  } else {
+    // Si no hay firestore, actualizamos stock local si existiera
+    if (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined') {
+      productosGlobal[idx].stock = productosGlobal[idx].stock - 1;
+      renderProductos(getProductosFiltradosActuales());
+    }
+  }
 }
 
 function persistirCarrito() {
@@ -249,11 +319,14 @@ function persistirCarrito() {
 }
 
 function actualizarCarritoUI() {
-  const count = carrito.length;
-  const total = carrito.reduce((s, p) => s + (Number(p.precio) || 0), 0);
+  const count = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
+  const total = carrito.reduce((s, p) => s + (Number(p.precio) || 0) * (p.cantidad || 1), 0);
   if (badgeCarrito) {
     badgeCarrito.textContent = String(count);       // Muestra cantidad en el header
     badgeCarrito.title = `Total: $${formateaCLP(total)}`; // Tooltip con total $
+  }
+  if (carritoTotalElem) {
+    carritoTotalElem.textContent = total.toLocaleString('es-CL');
   }
 }
 
@@ -262,11 +335,12 @@ function encontrarProductoPorId(id) {
   return productosGlobal.find(p => (p.id || p.cod) == id);
 }
 
-function toast(mensaje) {
+function toast(mensaje, tipo = 'success') {
   const n = document.createElement('div');
+  const background = tipo === 'success' ? '#28a745' : '#dc3545';
   n.style.cssText = `
     position: fixed; top: 100px; right: 20px;
-    background: #28a745; color: #fff; padding: 12px 16px;
+    background: ${background}; color: #fff; padding: 12px 16px;
     border-radius: 6px; z-index: 10000; box-shadow: 0 6px 18px rgba(0,0,0,.3);
     font-weight: 600;
   `;
@@ -283,3 +357,241 @@ function escapeHtml(s='') {
     .replaceAll('"','&quot;')
     .replaceAll("'",'&#39;');
 }
+
+// ===== Funcionalidad de categorías visuales (dropdown + cards) =====
+function obtenerCategoriasUnicas(productos) {
+  const set = new Set();
+  (productos || []).forEach(p => {
+    const c = p.categoria || p.cat || 'Sin categoría';
+    if (c) set.add(c);
+  });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'es'));
+}
+
+function mostrarDropdownCategorias(categorias) {
+  if (!dropdownCategorias) return;
+  dropdownCategorias.innerHTML = categorias.map(categoria => `
+    <a href="#" class="dropdown-item" data-categoria="${escapeHtml(categoria)}">${escapeHtml(categoria)}</a>
+  `).join('');
+  dropdownCategorias.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = e.target;
+    if (target.classList.contains('dropdown-item')) {
+      const categoria = target.dataset.categoria;
+      filtrarPorCategoria(categoria);
+    }
+  });
+}
+
+function mostrarCardsCategorias(categorias) {
+  if (!cardsCategorias) return;
+  cardsCategorias.innerHTML = categorias.map(categoria => `
+    <div class="categoria-card" data-categoria="${escapeHtml(categoria)}">
+      <div class="categoria-img">${obtenerIconoCategoria(categoria)}</div>
+      <div class="categoria-nombre">${escapeHtml(categoria)}</div>
+    </div>
+  `).join('');
+  cardsCategorias.addEventListener('click', (e) => {
+    const card = e.target.closest('.categoria-card');
+    if (card) {
+      filtrarPorCategoria(card.dataset.categoria);
+    }
+  });
+}
+
+function obtenerIconoCategoria(categoria) {
+  const iconos = {
+    'Poleras personalizadas': '👕',
+    'Computadores gamers': '💻',
+    'Consolas': '🎮',
+    'Juegos de mesa': '🎲',
+    'Mouse': '🖱️',
+    'Mousepad': '🖥️',
+    'Sillas gamers': '🪑',
+
+  };
+  return iconos[categoria] || '📦';
+}
+
+function filtrarPorCategoria(categoria) {
+  const productosFiltrados = productosGlobal.filter(p => (p.categoria || p.cat) === categoria);
+  if (tituloProductos) tituloProductos.textContent = `${categoria} (${productosFiltrados.length} productos)`;
+  renderProductos(productosFiltrados);
+  // sincronizar select si existe
+  if (selCategoria) selCategoria.value = categoria;
+}
+
+function mostrarTodosLosProductos() {
+  if (tituloProductos) tituloProductos.textContent = `Todos los productos (${productosGlobal.length})`;
+  if (inputBusqueda) inputBusqueda.value = '';
+  if (buscadorAlt) buscadorAlt.value = '';
+  if (selCategoria) selCategoria.value = '';
+  renderProductos(productosGlobal);
+}
+
+// ===== Buscador (compatible con ambos inputs) =====
+function buscarProductos() {
+  const termino = (buscadorAlt?.value || inputBusqueda?.value || '').toLowerCase().trim();
+  if (!termino) {
+    mostrarTodosLosProductos();
+    return;
+  }
+  const productosFiltrados = productosGlobal.filter(p =>
+    (p.nombre || '').toLowerCase().includes(termino) ||
+    (p.categoria || '').toLowerCase().includes(termino) ||
+    (p.descripcion || p.desc || '').toLowerCase().includes(termino)
+  );
+  if (tituloProductos) tituloProductos.textContent = `Resultados para "${termino}" (${productosFiltrados.length})`;
+  renderProductos(productosFiltrados);
+}
+
+// ===== Carrito: totales y contador auxiliar =====
+function actualizarCarritoTotal() {
+  const total = carrito.reduce((sum, producto) => sum + ((producto.precio || 0) * (producto.cantidad || 1)), 0);
+  if (carritoTotalElem) carritoTotalElem.textContent = total.toLocaleString('es-CL');
+}
+
+function obtenerTotalItemsCarrito() {
+  return carrito.reduce((total, producto) => total + (producto.cantidad || 1), 0);
+}
+
+function actualizarContadorItemsCarrito() {
+  const contadorItems = document.querySelector('.carrito-count');
+  if (contadorItems) {
+    contadorItems.textContent = `(${obtenerTotalItemsCarrito()})`;
+  }
+}
+
+// ===== Firebase: actualizar/restaurar stock y escuchar cambios =====
+async function actualizarStockFirebase(productId, cantidad) {
+  if (!db) return;
+  try {
+    const productoRef = db.collection("producto").doc(productId);
+    const productoDoc = await productoRef.get();
+
+    if (productoDoc.exists) {
+      const stockActual = typeof productoDoc.data().stock !== 'undefined' ? Number(productoDoc.data().stock) : undefined;
+      const nuevoStock = typeof stockActual !== 'undefined' ? stockActual - cantidad : undefined;
+      if (typeof nuevoStock !== 'undefined') {
+        await productoRef.update({ stock: nuevoStock });
+      }
+      // actualizar localmente también
+      const index = productosGlobal.findIndex(p => p.id === productId);
+      if (index !== -1 && typeof nuevoStock !== 'undefined') {
+        productosGlobal[index].stock = nuevoStock;
+        renderProductos(getProductosFiltradosActuales());
+      }
+    }
+  } catch (error) {
+    console.error("Error actualizando stock en Firebase:", error);
+  }
+}
+
+async function restaurarStockFirebase(productId, cantidad) {
+  if (!db) return;
+  try {
+    const productoRef = db.collection("producto").doc(productId);
+    const productoDoc = await productoRef.get();
+
+    if (productoDoc.exists) {
+      const stockActual = typeof productoDoc.data().stock !== 'undefined' ? Number(productoDoc.data().stock) : undefined;
+      const nuevoStock = typeof stockActual !== 'undefined' ? stockActual + cantidad : undefined;
+      if (typeof nuevoStock !== 'undefined') {
+        await productoRef.update({ stock: nuevoStock });
+      }
+      // actualizar localmente también
+      const index = productosGlobal.findIndex(p => p.id === productId);
+      if (index !== -1 && typeof nuevoStock !== 'undefined') {
+        productosGlobal[index].stock = nuevoStock;
+        renderProductos(getProductosFiltradosActuales());
+      }
+    }
+  } catch (error) {
+    console.error("Error restaurando stock en Firebase:", error);
+  }
+}
+
+function escucharCambiosStock() {
+  if (!db) return;
+  db.collection("producto").onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "modified") {
+        const productoActualizado = { id: change.doc.id, ...change.doc.data() };
+        // Actualizar en productosGlobal
+        const index = productosGlobal.findIndex(p => p.id === productoActualizado.id);
+        if (index !== -1) {
+          productosGlobal[index] = {
+            ...productosGlobal[index],
+            ...productoActualizado,
+            cat: productoActualizado.categoria || productoActualizado.cat || productosGlobal[index].cat
+          };
+          renderProductos(getProductosFiltradosActuales());
+        }
+      }
+    });
+  });
+}
+
+// ===== Limpiar carrito y restaurar stock =====
+async function limpiarCarritoYRestaurarStock() {
+  if (carrito.length === 0) return;
+
+  try {
+    for (const producto of carrito) {
+      const cantidad = producto.cantidad || 1;
+      if (db && producto.id) {
+        await restaurarStockFirebase(producto.id, cantidad);
+      } else {
+        // restaurar localmente si no hay firebase
+        const idx = productosGlobal.findIndex(p => (p.id || p.cod) === producto.id);
+        if (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined') {
+          productosGlobal[idx].stock += cantidad;
+        }
+      }
+    }
+
+    carrito = [];
+    localStorage.removeItem('carrito');
+    actualizarCarritoTotal();
+    actualizarContadorItemsCarrito();
+    actualizarCarritoUI();
+    mostrarNotificacion('Carrito limpiado y stock restaurado');
+  } catch (error) {
+    console.error("Error limpiando carrito:", error);
+  }
+}
+
+// Reemplazar función global limpiarCarrito si alguien la llama
+window.limpiarCarrito = limpiarCarritoYRestaurarStock;
+
+// ===== Utilidad: obtener la lista actualmente mostrada (según filtros visibles) =====
+function getProductosFiltradosActuales() {
+  // Si hay un término en el buscador o filtros aplicados, reutilizamos la lógica de aplicarFiltrosDesdeInputs
+  let term   = (inputBusqueda?.value || buscadorAlt?.value || '').trim().toLowerCase();
+  let catVal = (selCategoria?.value || '').trim();
+  let minVal = Number(inputMin?.value || '');
+  let maxVal = Number(inputMax?.value || '');
+
+  let lista = [...productosGlobal];
+
+  if (term) {
+    lista = lista.filter(p =>
+      (p.nombre && p.nombre.toLowerCase().includes(term)) ||
+      ((p.desc || p.descripcion || '').toLowerCase().includes(term)) ||
+      ((p.cat || p.categoria || '').toLowerCase().includes(term))
+    );
+  }
+
+  if (catVal) {
+    lista = lista.filter(p => (p.cat || p.categoria || '') === catVal);
+  }
+
+  if (!Number.isNaN(minVal)) {
+    lista = lista.filter(p => (Number(p.precio) || 0) >= (minVal || 0));
+  }
+  if (!Number.isNaN(maxVal) && maxVal > 0) {
+    lista = lista.filter(p => (Number(p.precio) || 0) <= maxVal);
+  }
+  return lista;
+}
+

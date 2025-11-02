@@ -14,29 +14,20 @@
   <!-- Placeholder para incluir el header mediante include.js -->
   <div id="header-placeholder"></div>
 
-  <main class="container pb-5">
-    <h1 class="text-center font-orbitron my-4 py-4 text-white">PRODUCTOS</h1>
+    <main class="main">
+    <!-- CARDS DE CATEGORÍAS -->
+    <section class="categorias-section">
+      <h2 class="section-title">Categorías</h2>
+       <button id="btnVerTodos" class="btn-ver-todos">Todos los productos</button>
+      <div id="cardsCategorias" class="categorias-grid"></div>
+    </section>
 
-    <div class="row mb-4">
-      <div class="col-md-3">
-        <input type="search" id="busqueda" class="form-control" placeholder="Buscar producto...">
-      </div>
-      <div class="col-md-3">
-        <select id="filtro-categoria" class="form-select">
-          <option value="">Todas las categorías</option>
-          <!-- Se llenan con JS -->
-        </select>
-      </div>
-      <div class="col-md-2">
-        <input type="number" id="filtro-min" class="form-control" placeholder="Precio mínimo">
-      </div>
-      <div class="col-md-2">
-        <input type="number" id="filtro-max" class="form-control" placeholder="Precio máximo">
-      </div>
-      <div class="col-md-2">
-        <button class="btn btn-outline-light w-100" onclick="limpiarFiltros()">Limpiar</button>
-      </div>
-    </div>
+    <!-- PRODUCTOS -->
+    <section class="productos-section">
+      <h2 id="tituloProductos" class="section-title">Todos los Productos</h2>
+      <div id="productosGrid" class="productos-grid"></div>
+    </section>
+  </main>
 
     <div class="row g-4 justify-content-center" id="productos-lista">
       <!-- Productos renderizados por JS -->
