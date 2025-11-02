@@ -1,6 +1,6 @@
 <header class="header navbar-electric">
   <!-- TOP: logo izquierda, buscador centrado y zona auth/carrito a la derecha -->
-  <div class="header-top container d-flex align-items-center justify-content-between">
+  <div class="header-top ">
     <!-- Logo (mantengo href y la ruta de la imagen tal como estaban) -->
     <a href="/index.html" class="brand d-flex align-items-center text-decoration-none">
       <img src="/assets/img/logo.png" alt="Level-Up Gamer" class="logo-img">
@@ -20,24 +20,23 @@
     </form>
 
     <!-- Zona derecha: perfil + carrito (IDs intactos: header-nombre-usuario, badge-carrito) -->
-    <div class="auth-cart d-flex align-items-center gap-2">
+    <div class="auth-cart">
       <a href="/assets/page/perfilUsuario.html" class="profile-link d-flex align-items-center" title="Perfil de usuario">
-        <i class="bi bi-person-circle"></i>
+        <!--<i class="bi bi-person-circle"></i>-->
         <!-- con clase username para estilo, pero id preservado para scripts -->
         <span id="header-nombre-usuario" class="username d-none d-md-inline"></span>
       </a>
-
-      <a href="/assets/page/carrito.html" class="cart-link d-flex align-items-center cart-btn" title="Ver carrito">
-        <i class="bi bi-cart me-2"></i>
-        <span class="cart-text">Total: $<span id="badge-carrito">0</span></span>
-      </a>
     </div>
+	<div class="auth-buttons">
+  <a class="btn-login cart-btn" href="/assets/page/login.html">Iniciar Sesión</a>
+  <a class="btn-signup cart-btn" href="/assets/page/registro_usuario.html">Crear Cuenta</a>
+</div>
   </div>
 
   <!-- NAV principal: links centrados; mantengo id dropdownCategorias -->
   <nav class="nav-main">
-    <div class="container d-flex justify-content-center">
-      <ul class="nav-links d-flex align-items-center gap-4 list-unstyled mb-0">
+    <div class=" vosabes">
+      <ul class="nav-links">
         <li><a href="/index.html" class="nav-link">Inicio</a></li>
 
         <li class="dropdown">
@@ -50,6 +49,14 @@
         <li><a href="/assets/page/blog.html" class="nav-link">Blog</a></li>
         <li><a href="/assets/page/contacto.html" class="nav-link">Contacto</a></li>
       </ul>
+
+      <!-- Muevo nav-right dentro del mismo container para que quede en la misma fila que la UL -->
+      <div class="nav-right">
+        <button class="btn-carrito" onclick="window.location.href='assets/page/carrito.html'"> <!--Cambiar a "carrito" para React Router-->
+          <span class="carrito-icon">🛒</span>
+          Total: $<span class="carrito-total">0</span>
+        </button>
+      </div>
     </div>
   </nav>
 </header>
