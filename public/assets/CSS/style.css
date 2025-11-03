@@ -1,3 +1,260 @@
+/* ------------------------------------------------------------------
+   Merged from oferta.css
+   The oferta styles were consolidated here to unify CSS files.
+   ------------------------------------------------------------------ */
+
+/* Hero */
+.hero-ofertas {
+  background: linear-gradient(90deg, rgba(6,6,8,0.8), rgba(14,10,20,0.85));
+  color: #fff;
+  padding: 1.8rem;
+  border-radius: 12px;
+  margin: 1rem 0 1.4rem 0;
+  text-align: center;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+}
+.font-orbitron { font-family: 'Orbitron', sans-serif; }
+.text-neon { color: var(--accent-green) !important; }
+.text-secondary { color: rgba(255,255,255,0.65); }
+
+/* Grid */
+.ofertas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+/* Card */
+.oferta-card {
+  background: #0f1112;
+  color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.oferta-card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+
+/* IMAGE WRAPPER (recommended option) */
+.oferta-img-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 6; /* Banner-like ratio; change to 16/9 or 4/3 as desired */
+  overflow: hidden;
+  background: #111;
+  display: block;
+  border-radius: 12px 12px 0 0;
+}
+.oferta-img-wrapper img,
+.oferta-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  border-radius: 0;
+}
+
+/* fallback for code that uses .card-img-top directly */
+.card-img-top {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  border-radius: 12px 12px 0 0;
+}
+
+/* Body */
+.oferta-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.oferta-title { font-weight: 700; color: #fff; font-size: 1rem; }
+.oferta-cat { font-size: 0.82rem; color: #cfd8dc; }
+.oferta-price { margin-top: 0.5rem; display:flex; gap:8px; align-items: baseline; }
+.precio-original { text-decoration: line-through; color:#9aa4b2; font-size:0.95rem; }
+.precio-oferta { color: var(--accent-green); font-weight: 800; font-size:1.15rem; }
+
+/* Badge */
+.badge-desc {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: #ff3b30;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+}
+
+/* Actions */
+.oferta-actions { margin-top: auto; display:flex; gap:8px; }
+.btn-add-cart {
+  background: var(--accent-green);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+}
+.btn-add-cart:hover { filter: brightness(.95); transform: translateY(-1px); }
+.btn-ver { border-radius: 8px; }
+
+/* Empty state */
+.no-ofertas { padding: 2rem; color: #cfcfcf; }
+
+/* Responsive tweaks */
+@media (max-width: 991px) {
+  .oferta-img-wrapper { aspect-ratio: 16 / 8; } /* slightly taller on medium screens */
+}
+@media (max-width: 575px) {
+  .oferta-img-wrapper { aspect-ratio: 4 / 3; } /* mobile: taller ratio */
+  .card-img-top { height: 120px; }
+  .hero-ofertas { padding: 1.2rem; }
+}
+
+/* -------------------------
+   ADICIONES: categorías en cuadros,
+   búsqueda and small helpers
+   ------------------------- */
+
+/* Search form helpers (compatible with .search-input used in HTML) */
+.search-input {
+  flex: 1 1 auto;
+  border-radius: 40px;
+  padding: 10px 20px;
+  height: 42px;
+  border: 1px solid rgba(255,255,255,0.04);
+  background: #0f1112;
+  color: #fff;
+  outline: none;
+}
+.search-input::placeholder { color: rgba(255,255,255,0.45); }
+
+.btn-search {
+  border-radius: 30px;
+  padding: 8px 18px;
+  height: 42px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-main);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.btn-search:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+
+/* Categories cards (clickable tiles) */
+.cards-categorias {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem 0;
+}
+.categoria-card {
+  background: #0f1112;
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid transparent;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:12px;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s;
+  min-height: 140px;
+}
+.categoria-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 28px rgba(30,144,255,0.06);
+  border-color: rgba(30,144,255,0.12);
+}
+.categoria-card.selected {
+  border-color: var(--accent-green);
+  box-shadow: 0 8px 28px rgba(57,255,20,0.08);
+  transform: translateY(-4px);
+}
+.categoria-img {
+  width:72px;
+  height:72px;
+  margin:0 auto;
+  background:#fff;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+}
+.categoria-nombre {
+  color: var(--text-main);
+  font-weight:700;
+  font-size:0.95rem;
+}
+
+/* Small layout helpers */
+.filters-row { gap: .5rem; align-items: center; }
+.btn-all-products { border-radius: 999px; padding: 8px 16px; background: var(--accent-blue); color: #fff; border: none; }
+.btn-all-products:hover { filter:brightness(.95); }
+
+/* Offer card small adjustments to align with palette */
+.product-card { background-color: #18181c; border-radius: 12px; overflow: hidden; }
+.card-body { padding: 12px; display:flex; flex-direction:column; min-height:140px; }
+
+/* Add to cart button outline variant */
+.btn-add-cart-outline {
+  background: transparent;
+  color: var(--accent-green);
+  border: 1px solid var(--accent-green);
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn-add-cart-outline:hover { background: var(--accent-green); color: #000; }
+
+/* Misc */
+.section-title { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight:700; color: var(--text-main); }
+
+/* Responsive tweaks for categories grid */
+@media (max-width: 575px) {
+  .cards-categorias { grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); }
+  .categoria-card { min-height: 120px; padding: 12px; }
+}
+
+/* Ajustes específicos para mostrar ofertas más pequeñas dentro del carrito */
+.carrito-main .ofertas-grid {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.45rem;
+}
+.carrito-main .oferta-card {
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+.carrito-main .card-img-top,
+.carrito-main .oferta-img {
+  height: 90px;
+}
+.carrito-main .oferta-img-wrapper { aspect-ratio: 16 / 9; }
+.carrito-main .oferta-body { padding: 6px; gap:4px; }
+.carrito-main .oferta-title { font-size: 0.88rem; font-weight:700; }
+.carrito-main .oferta-cat { font-size: 0.68rem; }
+.carrito-main .precio-oferta { font-size: 0.95rem; }
+.carrito-main .precio-original { font-size: 0.78rem; }
+.carrito-main .badge-desc { padding: 3px 6px; font-size: 0.68rem; left:6px; top:6px; }
+.carrito-main .btn-add-cart, .carrito-main .btn-ver, .carrito-main .btn-add-cart-outline {
+  padding: 5px 6px; font-size: 0.78rem; border-radius: 6px;
+}
+.carrito-main .card-body { min-height: 0; }
+
 :root {
   --bg-main: #000;
   --text-main: #fff;
@@ -888,7 +1145,6 @@ body {
   background: #23272b;
   border-radius: 12px;
   padding: 1.5rem;
-  /* Aumentado ancho del resumen para que sea más grande dentro de la columna */
   min-width: 320px;
   max-width: 420px;
   margin-left: 2rem;

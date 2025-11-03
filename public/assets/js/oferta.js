@@ -49,7 +49,6 @@
 
     btnVerTodas?.addEventListener('click', () => { location.href = 'catalogo.html'; });
 
-    // Helpers: iconos por categoría (puedes ampliar)
     function obtenerIconoCategoria(categoria) {
       const iconos = {
         'Poleras personalizadas': '👕',
@@ -59,7 +58,7 @@
         'Mouse': '🖱️',
         'Mousepad': '🖥️',
         'Sillas gamers': '🪑',
-        'Accesorios': '📦'
+        'Accesorios': '🎧',
       };
       return iconos[categoria] || '📦';
     }
@@ -152,7 +151,6 @@
         `;
       }).join('');
 
-      // add to cart listeners
       document.querySelectorAll('.btn-add-cart-js').forEach(btn => {
         btn.addEventListener('click', () => {
           const id = btn.getAttribute('data-id');
@@ -166,7 +164,6 @@
               return;
             }
           }
-          // fallback localStorage
           let carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
           let productoExistente = carrito.find(it => it.id === id);
           const nombre = btn.closest('.oferta-card')?.querySelector('.oferta-title')?.textContent || 'Producto';
@@ -175,6 +172,28 @@
           localStorage.setItem('carrito', JSON.stringify(carrito));
           if (typeof window.toast === 'function') window.toast(`"${nombre}" agregado al carrito`);
           else alert('Producto agregado al carrito');
+        });
+      });
+      
+      // Asegurar que al hacer click en "Ver detalle" guardamos el producto en localStorage
+      // para que product.html pueda cargarlo (la página de detalle no incluye oferta.js).
+      document.querySelectorAll('.btn-ver').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          try {
+            e.preventDefault();
+            const href = btn.getAttribute('href') || btn.href || 'product.html';
+            // obtener id desde la card contenedora
+            const card = btn.closest('.oferta-card');
+            const pid = card ? (card.getAttribute('data-id') || '') : '';
+            const prod = (ofertasCargadas || []).find(p => String(p.id || p.cod) === String(pid) || String(p.cod || p.id) === String(pid));
+            if (prod) {
+              try { localStorage.setItem('producto_visto_oferta', JSON.stringify(prod)); } catch(err) { /* noop */ }
+            }
+            window.location.href = href;
+          } catch (err) {
+            console.warn('Error al redirigir a detalle desde oferta:', err);
+            try { window.location.href = btn.href; } catch(e){ /* noop */ }
+          }
         });
       });
     }
@@ -193,7 +212,6 @@
         </div>
       `).join('');
 
-      // poblar select oculto también si existe
       if (sel) {
         sel.innerHTML = [
           `<option value="">Todas las categorías</option>`,
@@ -201,24 +219,19 @@
         ].join('');
       }
 
-      // listeners en cuadros
       cardsRoot.querySelectorAll('.categoria-card').forEach(card => {
         card.addEventListener('click', () => {
           const cat = card.dataset.categoria;
-          // togglear selección visual
           cardsRoot.querySelectorAll('.categoria-card').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
-          // sincronizar select y aplicar filtro
           if (sel) sel.value = cat;
           aplicarFiltroOfertasDesdeInputs();
-          // scroll to offers area (opcional)
           const ofertasList = ofertasListEl();
           if (ofertasList) ofertasList.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
     }
 
-    // Filtrado local sobre ofertasCargadas
     function aplicarFiltroOfertasDesdeInputs() {
       const termino = (inputBusqueda()?.value || '').toLowerCase().trim();
       const catVal = (selCategoria()?.value || '').trim();
@@ -250,7 +263,6 @@
       renderOfertas(lista);
     }
 
-    // Firestore / fallback loaders
     async function obtenerProductos_de_oferta_fire() {
       if (typeof window.getProductosGlobal === 'function') {
         try {
@@ -350,7 +362,6 @@
       renderOfertas([]);
     }
 
-    // inicializar
     cargarYMostrarOfertas();
     let reintentos = 0;
     const reintentarInterval = setInterval(async () => {
@@ -359,7 +370,6 @@
       if (typeof window.getProductosGlobal === 'function' || reintentos > 10) clearInterval(reintentarInterval);
     }, 700);
 
-    // hooks UI
     if (inputBusqueda()) {
       inputBusqueda().addEventListener('input', debounce_local(() => aplicarFiltroOfertasDesdeInputs(), 250));
       inputBusqueda().addEventListener('keypress', (e) => {
@@ -375,7 +385,6 @@
       if (selCategoria()) selCategoria().value = '';
       if (inputMin()) inputMin().value = '';
       if (inputMax()) inputMax().value = '';
-      // remove selection visual
       const cardsRoot = cardsCategoriasEl();
       cardsRoot?.querySelectorAll('.categoria-card')?.forEach(c => c.classList.remove('selected'));
       renderOfertas(ofertasCargadas);
@@ -388,7 +397,6 @@
       renderOfertas(ofertasCargadas);
     });
 
-    // Exports
     window.getOfertasCargadas = () => ofertasCargadas;
     window.refrescarOfertas = cargarYMostrarOfertas;
     window.getProductosFiltradosActualesOfertas = () => productosFiltradosActuales;

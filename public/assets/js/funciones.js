@@ -2,6 +2,9 @@ if (typeof window.formateaCLP === 'undefined') {
   window.formateaCLP = function formateaCLP(n){ return (Number(n) || 0).toLocaleString("es-CL") + " CLP"; };
 }
 
+const _escapeHtml = (s='') => String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");
+const escapeHtml = (typeof window.escapeHtml === 'function') ? window.escapeHtml : _escapeHtml;
+
 function getProductPool() {
   const src = (window.productosGlobal && window.productosGlobal.length) ? window.productosGlobal
     : (window.PRODUCTOS && window.PRODUCTOS.length) ? window.PRODUCTOS
@@ -94,8 +97,20 @@ function renderIndexCatalogoMockup() {
 async function renderDetalleProducto() {
   const params = new URLSearchParams(window.location.search);
   const cod = params.get("cod");
+  const codStr = cod ? String(cod) : '';
+  let prod = null;
+  try {
+    const stored = localStorage.getItem('producto_visto_oferta');
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed && (String(parsed.cod || parsed.id || parsed.codigo) === codStr)) {
+        prod = normalizeProduct(parsed);
+        localStorage.removeItem('producto_visto_oferta');
+      }
+    }
+  } catch (e) { /* noop */ }
   let poolInit = getProductPool();
-  let prod = poolInit.find(p => p.cod === cod);
+  if (!prod) prod = poolInit.find(p => String(p.cod) === codStr || String(p.id) === codStr);
 
   if (!prod) {
     let attempts = 0;
@@ -114,6 +129,19 @@ async function renderDetalleProducto() {
       await new Promise(r => setTimeout(r, 200));
     }
   }
+  if (!prod && typeof window.getOfertasCargadas === 'function') {
+    try {
+      const offers = window.getOfertasCargadas() || [];
+      prod = offers.find(p => String(p.cod) === codStr || String(p.id) === codStr || String(p.codigo) === codStr);
+    } catch (e) { /* noop */ }
+  }
+  if (!prod && typeof window.getProductosFiltradosActualesOfertas === 'function') {
+    try {
+      const offers2 = window.getProductosFiltradosActualesOfertas() || [];
+      prod = offers2.find(p => String(p.cod) === codStr || String(p.id) === codStr || String(p.codigo) === codStr);
+    } catch (e) { /* noop */ }
+  }
+
   if (!prod) return;
 
   const img = document.getElementById("main-img");
@@ -129,6 +157,11 @@ async function renderDetalleProducto() {
   if (desc) desc.textContent = prod.desc;
   const bread = document.getElementById("breadcrumb-title");
   if (bread) bread.textContent = prod.nombre;
+
+  try {
+    await ensureFirebaseInitialized();
+  } catch (e) { /* ignore init errors; fallback to localStorage below */ }
+  await loadAndRenderReviews(prod);
 
   let poolRel = getProductPool();
   let relacionados = poolRel.filter(p => p.cat === prod.cat && p.cod !== prod.cod);
@@ -219,6 +252,190 @@ async function renderDetalleProducto() {
     };
   }
 }
+
+function ensureFirebaseInitialized() {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!(window.firebase && typeof firebase !== 'undefined')) {
+        return reject(new Error('Firebase SDK not available'));
+      }
+      try {
+        if (!firebase.apps || !firebase.apps.length) {
+          const firebaseConfig = {
+            apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVj4asYTHo",
+            authDomain: "tiendalevelup-ccd23.firebaseapp.com",
+            projectId: "tiendalevelup-ccd23",
+          };
+          firebase.initializeApp(firebaseConfig);
+        }
+      } catch (e) {
+      }
+      if (!firebase.firestore) return resolve();
+      resolve();
+    } catch (e) { reject(e); }
+  });
+}
+
+async function saveReviewToFirestore(product, name, rating, comment) {
+  try {
+    if (!(window.firebase && typeof firebase !== 'undefined') || !firebase.firestore) throw new Error('Firestore not available');
+    const db = firebase.firestore();
+    const doc = {
+      productCod: product.cod || product.id || product.codigo || null,
+      productId: product.id || product.cod || null,
+      name: name || 'Anon',
+      rating: Number(rating) || 0,
+      comment: comment || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('producto_reviews').add(doc);
+    return true;
+  } catch (e) {
+    console.warn('saveReviewToFirestore failed:', e);
+    return false;
+  }
+}
+
+function saveReviewToLocal(product, name, rating, comment) {
+  try {
+    const key = 'producto_reviews_local';
+    const raw = JSON.parse(localStorage.getItem(key) || '{}');
+    const prodKey = String(product.cod || product.id || product.codigo || '_unknown_');
+    raw[prodKey] = raw[prodKey] || [];
+    raw[prodKey].push({ name: name || 'Anon', rating: Number(rating) || 0, comment: comment || '', createdAt: Date.now() });
+    localStorage.setItem(key, JSON.stringify(raw));
+    return true;
+  } catch (e) { console.warn('saveReviewToLocal failed', e); return false; }
+}
+
+async function loadReviewsFromFirestore(product) {
+  try {
+    if (!(window.firebase && typeof firebase !== 'undefined') || !firebase.firestore) throw new Error('Firestore not available');
+    const db = firebase.firestore();
+    const codCandidates = [];
+    if (product.cod) codCandidates.push(String(product.cod));
+    if (product.id) codCandidates.push(String(product.id));
+    if (product.codigo) codCandidates.push(String(product.codigo));
+    const uniq = Array.from(new Set(codCandidates)).filter(x => x && x.length);
+    if (!uniq.length) return [];
+
+    const col = db.collection('producto_reviews');
+    const resultsMap = new Map();
+
+    for (const cand of uniq) {
+      try {
+        const snap = await col.where('productCod', '==', cand).orderBy('createdAt', 'desc').limit(50).get();
+        snap.forEach(d => {
+          if (!resultsMap.has(d.id)) resultsMap.set(d.id, Object.assign({ id: d.id }, d.data()));
+        });
+      } catch (e) {
+      }
+      try {
+        const snap2 = await col.where('productId', '==', cand).orderBy('createdAt', 'desc').limit(50).get();
+        snap2.forEach(d => {
+          if (!resultsMap.has(d.id)) resultsMap.set(d.id, Object.assign({ id: d.id }, d.data()));
+        });
+      } catch (e) { /* ignore */ }
+    }
+
+    const arr = Array.from(resultsMap.values()).sort((a,b) => {
+      const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : (a.createdAt || 0);
+      const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : (b.createdAt || 0);
+      return (tb - ta) || 0;
+    }).slice(0, 50);
+    return arr.map(r => ({ id: r.id, name: r.name || r.nombre || 'Anon', rating: r.rating || 0, comment: r.comment || r.comentario || r.text || '', createdAt: r.createdAt }));
+  } catch (e) { console.warn('loadReviewsFromFirestore failed', e); return []; }
+}
+
+function loadReviewsFromLocal(product) {
+  try {
+    const key = 'producto_reviews_local';
+    const raw = JSON.parse(localStorage.getItem(key) || '{}');
+    const prodKey = String(product.cod || product.id || product.codigo || '_unknown_');
+    return raw[prodKey] || [];
+  } catch (e) { return []; }
+}
+
+function formatReviewDate(ts) {
+  try {
+    if (!ts) return '';
+    let d;
+    if (ts && typeof ts.toDate === 'function') d = ts.toDate();
+    else if (typeof ts === 'number') d = new Date(ts);
+    else if (typeof ts === 'string' && !isNaN(Date.parse(ts))) d = new Date(ts);
+    else return '';
+    return d.toLocaleString('es-CL', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  } catch (e) { return ''; }
+}
+
+async function loadAndRenderReviews(product) {
+  const container = document.getElementById('reviews-product');
+  const containerBelow = document.getElementById('reviews-below-related');
+  if (!container && !containerBelow) return;
+  let reviews = [];
+  try {
+    await ensureFirebaseInitialized();
+    reviews = await loadReviewsFromFirestore(product);
+  } catch (e) {
+    reviews = [];
+  }
+  const local = loadReviewsFromLocal(product) || [];
+  reviews = [...local.map(r => (Object.assign({local:true}, r))), ...reviews];
+
+  const html = (reviews.length)
+    ? reviews.map(r => `
+      <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <div><strong>${escapeHtml(r.name || 'Anon')}</strong>
+            <div class="small text-secondary">${formatReviewDate(r.createdAt)}</div>
+          </div>
+          <small class="text-secondary">${r.rating || 0} ★ ${r.local ? '(local)' : ''}</small>
+        </div>
+        <div class="text-secondary small mt-1">${escapeHtml(r.comment || '')}</div>
+      </div>
+    `).join('')
+    : '<p class="text-secondary">Aún no hay reseñas. Sé el primero en comentar.</p>';
+
+  if (container) container.innerHTML = html;
+  if (containerBelow) containerBelow.innerHTML = `
+    <h4 class="font-orbitron text-white mb-3">Reseñas</h4>
+    ${html}
+  `;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const btn = document.getElementById('btn-review');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      const nameEl = document.getElementById('rv-nombre-product');
+      const ratingEl = document.getElementById('rv-rating-product');
+      const commentEl = document.getElementById('rv-com-product');
+      const name = nameEl ? nameEl.value.trim() : 'Anon';
+      const rating = ratingEl ? Number(ratingEl.value) : 5;
+      const comment = commentEl ? commentEl.value.trim() : '';
+      const titleEl = document.getElementById('product-title');
+      const title = titleEl ? titleEl.textContent : '';
+      const params = new URLSearchParams(window.location.search);
+      const cod = params.get('cod');
+      const product = { cod };
+      let saved = false;
+      try {
+        await ensureFirebaseInitialized();
+        if (cod) saved = await saveReviewToFirestore(product, name, rating, comment);
+      } catch (e) { saved = false; }
+      if (!saved) {
+        saveReviewToLocal(product, name, rating, comment);
+      }
+      if (nameEl) nameEl.value = '';
+      if (ratingEl) ratingEl.value = '5';
+      if (commentEl) commentEl.value = '';
+      await loadAndRenderReviews(product);
+      if (typeof toast === 'function') toast('Reseña publicada');
+      else alert('Reseña publicada');
+    });
+  } catch (e) { /* noop */ }
+});
 
 document.addEventListener("DOMContentLoaded", function() {
   renderCatalogoMockup();

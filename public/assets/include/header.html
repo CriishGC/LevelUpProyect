@@ -49,4 +49,21 @@
       </div>
     </div>
   </nav>
+  <script>
+    (function(){
+      try{
+        var form = document.getElementById('searchForm');
+        var input = document.getElementById('searchInput');
+        if(!form || !input) return;
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          var term = (input.value || '').trim();
+          try{ localStorage.setItem('catalog_search', term); } catch(err) { /* noop */ }
+          // Redirect to catálogo. Include q param for convenience.
+          var href = '/assets/page/catalogo.html' + (term ? '?q=' + encodeURIComponent(term) : '');
+          window.location.href = href;
+        });
+      }catch(e){ console.warn('Error wiring search form:', e); }
+    })();
+  </script>
 </header>

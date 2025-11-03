@@ -105,6 +105,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (btnVerTodos)   btnVerTodos.addEventListener('click', mostrarTodosLosProductos);
   if (btnCarrito)    btnCarrito.addEventListener('click', () => window.location.href = 'carrito.html');
 
+  // Inicializar búsqueda desde querystring (?q=...) o desde localStorage (catalog_search)
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const qParam = (params.get('q') || '').trim();
+    const stored = (localStorage.getItem('catalog_search') || '').trim();
+    const initial = qParam || stored || '';
+    if (initial) {
+      if (inputBusqueda) inputBusqueda.value = initial;
+      if (buscadorAlt) buscadorAlt.value = initial;
+      // Ejecutar búsqueda (usar buscarProductos para mantener consistencia)
+      try { buscarProductos(); } catch(e) { aplicarFiltrosDesdeInputs(); }
+      try { localStorage.removeItem('catalog_search'); } catch(e) { /* noop */ }
+    }
+  } catch (err) { console.warn('Error aplicando búsqueda inicial:', err); }
+
   window.limpiarFiltros = limpiarFiltros;
   window.mostrarTodosLosProductos = mostrarTodosLosProductos;
   window.getProductosGlobal = () => productosGlobal;
@@ -366,7 +381,7 @@ function obtenerIconoCategoria(categoria) {
     'Mouse': '🖱️',
     'Mousepad': '🖥️',
     'Sillas gamers': '🪑',
-
+    'Accesorios': '🎧'
   };
   return iconos[categoria] || '📦';
 }

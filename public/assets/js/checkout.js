@@ -27,8 +27,26 @@
     const pool = getProductSources();
     const detalles = items.map(i => {
       const p = pool.find(pp => (String(pp.id) === String(i.id) || String(pp.cod) === String(i.id))) || null;
+
       const nombre = p ? (p.nombre || p.name || p.title) : (meta[i.id] && meta[i.id].nombre) || i.id;
-      const precio = p ? Number(p.precio || p.price || 0) : (meta[i.id] && Number(meta[i.id].precio) || 0);
+
+      let precio = 0;
+      if (meta && meta[i.id] && typeof meta[i.id].precioOferta !== 'undefined' && meta[i.id].precioOferta !== null) {
+        precio = Number(meta[i.id].precioOferta) || 0;
+      } else if (p) {
+        const po = (typeof p.precio_oferta === 'number') ? p.precio_oferta
+                 : (typeof p.precioOferta === 'number') ? p.precioOferta
+                 : (typeof p.precio_oferta === 'string' && !isNaN(Number(p.precio_oferta))) ? Number(p.precio_oferta)
+                 : undefined;
+        if (typeof po !== 'undefined' && po !== null && !Number.isNaN(po) && Number(po) > 0) {
+          precio = Number(po);
+        } else {
+          precio = Number(p.precio || p.price || 0);
+        }
+      } else {
+        precio = Number((meta[i.id] && meta[i.id].precio) || 0);
+      }
+
       const subtotal = precio * (Number(i.qty) || 0);
       return { id: i.id, qty: Number(i.qty)||0, nombre, precio, subtotal };
     });
@@ -118,11 +136,47 @@
     const db = fb.db;
     try{
       const orderRef = db.collection('orders').doc();
-      await db.runTransaction(async tx => {
-        const prodRefs = detalles.map(it => db.collection('productos').doc(String(it.id)));
-        const snaps = await Promise.all(prodRefs.map(r => tx.get(r)));
 
-        snaps.forEach((snap, idx) => {
+      const lookups = await Promise.all(detalles.map(async (it) => {
+        const idStr = String(it.id);
+        const docRef = db.collection('productos').doc(idStr);
+        const snap = await docRef.get();
+        if (snap && snap.exists) {
+          return { type: 'doc', ref: docRef, snap };
+        }
+        let q = await db.collection('productos').where('cod', '==', idStr).limit(1).get();
+        if (!q.empty && q.docs.length) {
+          return { type: 'doc', ref: db.collection('productos').doc(q.docs[0].id), snap: q.docs[0] };
+        }
+        q = await db.collection('productos').where('codigo', '==', idStr).limit(1).get();
+        if (!q.empty && q.docs.length) {
+          return { type: 'doc', ref: db.collection('productos').doc(q.docs[0].id), snap: q.docs[0] };
+        }
+        const ofertaDocRef = db.collection('producto_oferta').doc(idStr);
+        const ofertaSnap = await ofertaDocRef.get();
+        if (ofertaSnap && ofertaSnap.exists) {
+          return { type: 'doc', ref: ofertaDocRef, snap: ofertaSnap };
+        }
+        let q2 = await db.collection('producto_oferta').where('cod', '==', idStr).limit(1).get();
+        if (!q2.empty && q2.docs.length) {
+          return { type: 'doc', ref: db.collection('producto_oferta').doc(q2.docs[0].id), snap: q2.docs[0] };
+        }
+        q2 = await db.collection('producto_oferta').where('codigo', '==', idStr).limit(1).get();
+        if (!q2.empty && q2.docs.length) {
+          return { type: 'doc', ref: db.collection('producto_oferta').doc(q2.docs[0].id), snap: q2.docs[0] };
+        }
+
+        return { type: 'missing', id: idStr };
+      }));
+
+      const missing = lookups.filter(x => x.type === 'missing');
+      if (missing.length) {
+        throw new Error(`Producto no encontrado en Firestore: ${missing.map(m=>m.id).join(', ')}`);
+      }
+
+      await db.runTransaction(async tx => {
+        const txSnaps = await Promise.all(lookups.map(lu => tx.get(lu.ref)));
+        txSnaps.forEach((snap, idx) => {
           const it = detalles[idx];
           if (!snap.exists) throw new Error(`Producto no encontrado en Firestore: ${it.id}`);
           const data = snap.data() || {};
@@ -134,14 +188,14 @@
           }
         });
 
-        snaps.forEach((snap, idx) => {
+        txSnaps.forEach((snap, idx) => {
           const it = detalles[idx];
           const data = snap.data() || {};
           const stockField = (data.stock !== undefined) ? 'stock' : (data.cantidad !== undefined ? 'cantidad' : null);
           if (stockField){
             const current = Number(data[stockField] || 0);
             const remaining = current - Number(it.qty || 0);
-            tx.update(prodRefs[idx], { [stockField]: remaining });
+            tx.update(lookups[idx].ref, { [stockField]: remaining });
           }
         });
 
