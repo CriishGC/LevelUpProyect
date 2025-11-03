@@ -82,30 +82,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/include.js"></script>
-  <script>includeHeaderFooter();</script>
   <script src="../js/funciones.js"></script>
-  <script>
-  document.addEventListener("DOMContentLoaded", function() {
-
-
-    // Para producto:
-    renderDetalleProducto && renderDetalleProducto();
-      // Intentar actualizar el badge del carrito cuando esté disponible
-      if (typeof window.actualizarBadgeCarrito === 'function') {
-        try { window.actualizarBadgeCarrito(); } catch (e) { /* noop */ }
-      } else {
-        let attempts = 0;
-        const tryBadge = () => {
-          if (typeof window.actualizarBadgeCarrito === 'function') {
-            try { window.actualizarBadgeCarrito(); } catch (e) { /* noop */ }
-            return;
-          }
-          attempts++;
-          if (attempts < 12) setTimeout(tryBadge, 200);
-        };
-        tryBadge();
-      }
-  });
-</script>
+  
 </body>
 </html>

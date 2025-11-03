@@ -1,36 +1,22 @@
-/***** Catálogo | Level-Up Gamer (integrado con tarjetas y dropdown de categorías)
- - Soporta productos MOCK y/o Firestore (si el SDK está presente)
- - Alineado con tu HTML:
-   * #badge-carrito  (contador)
-   * #busqueda / #buscador       (buscador)
-   * #filtro-categoria, #filtro-min, #filtro-max
-   * #productos-lista / #productosGrid (grid)
-   * #dropdownCategorias, #cardsCategorias (categorías visuales)
-   * #tituloProductos, #btnBuscar, #btnVerTodos
-   * window.limpiarFiltros(), window.mostrarTodosLosProductos(), window.limpiarCarrito()
-*************************************/
-
-// ===== Utilidades =====
 const $  = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
-const formateaCLP = (n) => (n || 0).toLocaleString('es-CL');
+if (typeof window.formateaCLP === 'undefined') {
+  window.formateaCLP = (n) => (n || 0).toLocaleString('es-CL');
+}
 const isURL = (s) => typeof s === 'string' && /^https?:\/\//i.test(s);
 
-// ===== Estado =====
-let productosGlobal = [];                               // origen: Firestore o MOCK
+let productosGlobal = [];
 let carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-let db = null; // Firestore DB si está disponible
+let db = null;
 
-// ===== Elementos del DOM (todos opcionales para evitar caídas) =====
 const badgeCarrito     = $('#badge-carrito');
 const inputBusqueda    = $('#busqueda') || $('#buscador');
-const buscadorAlt      = $('#buscador'); // puede existir alternativamente
+const buscadorAlt      = $('#buscador');
 const selCategoria     = $('#filtro-categoria');
 const inputMin         = $('#filtro-min');
 const inputMax         = $('#filtro-max');
 const gridProductos    = $('#productos-lista') || $('#productosGrid');
 
-// Elementos del segundo script (opcional)
 const dropdownCategorias = $('#dropdownCategorias');
 const cardsCategorias    = $('#cardsCategorias');
 const tituloProductos    = $('#tituloProductos');
@@ -39,28 +25,23 @@ const btnVerTodos        = $('#btnVerTodos');
 const carritoTotalElem   = document.querySelector('.carrito-total');
 const btnCarrito         = document.querySelector('.btn-carrito');
 
-// ===== Inicialización =====
 document.addEventListener('DOMContentLoaded', async () => {
   actualizarCarritoUI();
   actualizarCarritoTotal();
   actualizarContadorItemsCarrito();
 
-  // Si hay Firebase (compat) disponible, intenta cargar productos reales
   if (window.firebase && firebase.initializeApp) {
     try {
-      // Ajusta tu config acá si corresponde (se intenta mantener compat con distintas configs)
       const firebaseConfig = {
          apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
          authDomain: "tiendalevelup-ccd23.firebaseapp.com",
          projectId: "tiendalevelup-ccd23",
       };
-      // Evita re-inicializar si ya está
       if (!firebase.apps || !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
       }
       db = firebase.firestore();
 
-      // Intentamos leer la colección 'productos' (plural) primero; fallback a 'producto'
       let snap = null;
       try {
         snap = await db.collection('productos').get();
@@ -74,19 +55,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const docs = (snap && snap.docs) ? snap.docs.map(d => ({ id: d.id, ...d.data() })) : [];
 
-      // Normaliza campos para que el renderer funcione igual que con el MOCK
       productosGlobal = docs.map(p => ({
         id: p.id,
         cod: p.cod || p.codigo || p.id || '',
         nombre: p.nombre || 'Producto',
         desc: p.descripcion || p.desc || '',
         precio: Number(p.precio) || 0,
-        // Compat: Firestore usa 'categoria'
         cat: p.categoria || p.cat || 'Sin categoría',
-        categoria: p.categoria || p.cat || 'Sin categoría', // para código que usa 'categoria'
-        // Compat: Firestore usa 'imagen' (URL). Si no, usamos mock/placeholder.
+        categoria: p.categoria || p.cat || 'Sin categoría', 
         imagen: p.imagen || p.img || '',
-        img: p.img || '', // por si quieres reusar path local
+        img: p.img || '',
         stock: typeof p.stock !== 'undefined' ? Number(p.stock) : undefined
       }));
 
@@ -99,20 +77,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       productosGlobal = [...PRODUCTOS_MOCK];
     }
   } else {
-    // Sin Firebase → usar MOCK
     productosGlobal = [...PRODUCTOS_MOCK];
   }
 
-  // Inicial UI
   poblarCategorias(productosGlobal);
-  // Además de poblar el select, poblamos dropdown y cards si existen
   const categoriasUnicas = obtenerCategoriasUnicas(productosGlobal);
   if (dropdownCategorias) mostrarDropdownCategorias(categoriasUnicas);
   if (cardsCategorias)    mostrarCardsCategorias(categoriasUnicas);
 
   renderProductos(productosGlobal);
 
-  // Eventos del buscador / filtros
   if (inputBusqueda) {
     inputBusqueda.addEventListener('input', aplicarFiltrosDesdeInputs);
     inputBusqueda.addEventListener('keypress', (e) => {
@@ -131,19 +105,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (btnVerTodos)   btnVerTodos.addEventListener('click', mostrarTodosLosProductos);
   if (btnCarrito)    btnCarrito.addEventListener('click', () => window.location.href = 'carrito.html');
 
-  // Exponer limpiarFiltros global
   window.limpiarFiltros = limpiarFiltros;
   window.mostrarTodosLosProductos = mostrarTodosLosProductos;
   window.getProductosGlobal = () => productosGlobal;
   window.getCarrito = () => carrito;
 
-  // Escuchar cambios de stock en tiempo real si hay Firestore
   if (db) escucharCambiosStock();
 
   console.log("Catálogo inicializado correctamente");
 });
 
-// ===== Render (mejorado para mostrar stock si existe) =====
 function renderProductos(lista) {
   if (!gridProductos) return;
 
@@ -161,7 +132,6 @@ function renderProductos(lista) {
 
   gridProductos.innerHTML = lista.map(p => {
     const precio = formateaCLP(p.precio);
-    // Determina la imagen: Firestore (p.imagen URL), o local (../img/...), o placeholder
     const srcImg = p.imagen
       ? (isURL(p.imagen) ? p.imagen : `../img/${p.imagen}`)
       : (p.img ? `../img/${p.img}` : 'https://via.placeholder.com/400x300/1f1f1f/999999?text=Sin+Imagen');
@@ -196,7 +166,6 @@ function renderProductos(lista) {
     `;
   }).join('');
 
-  // Listeners para "Agregar"
   $$('.btn-agregar').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.getAttribute('data-id');
@@ -205,7 +174,6 @@ function renderProductos(lista) {
         agregarAlCarrito(prod);
         toast(`"${prod.nombre}" agregado al carrito`);
       } else {
-        // si no encontramos por objeto, intentamos tratar id como string y buscar en Firestore (si existe)
         toast('Producto no encontrado', 'error');
       }
     });
@@ -224,9 +192,7 @@ function poblarCategorias(lista) {
   ].join('');
 }
 
-// ===== Filtros =====
 function aplicarFiltrosDesdeInputs() {
-  // Mantener compatibilidad con inputBusqueda o buscador alternativo
   let term   = (inputBusqueda?.value || buscadorAlt?.value || '').trim().toLowerCase();
   let catVal = (selCategoria?.value || '').trim();
   let minVal = Number(inputMin?.value || '');
@@ -265,13 +231,10 @@ function limpiarFiltros() {
   renderProductos(productosGlobal);
 }
 
-// ===== Carrito (mejorado: cantidades y validación stock) =====
 function agregarAlCarrito(prodOrId) {
-  // prodOrId puede ser objeto producto o id string
   let prod = typeof prodOrId === 'object' ? prodOrId : encontrarProductoPorId(prodOrId);
   if (!prod) return;
 
-  // Obtener stock actual desde productosGlobal
   const idx = productosGlobal.findIndex(p => (p.id || p.cod) == (prod.id || prod.cod));
   const stockActual = (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined')
     ? productosGlobal[idx].stock
@@ -282,7 +245,6 @@ function agregarAlCarrito(prodOrId) {
     return;
   }
 
-  // Buscar si ya existe en carrito
   const itemId = prod.id || prod.cod;
   let productoExistente = carrito.find(it => it.id === itemId);
   if (productoExistente) {
@@ -302,11 +264,9 @@ function agregarAlCarrito(prodOrId) {
   actualizarCarritoTotal();
   actualizarContadorItemsCarrito();
 
-  // Actualizar stock en Firestore si está disponible
   if (db && prod.id) {
     actualizarStockFirebase(prod.id, 1).catch(e => console.warn(e));
   } else {
-    // Si no hay firestore, actualizamos stock local si existiera
     if (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined') {
       productosGlobal[idx].stock = productosGlobal[idx].stock - 1;
       renderProductos(getProductosFiltradosActuales());
@@ -322,15 +282,14 @@ function actualizarCarritoUI() {
   const count = carrito.reduce((sum, it) => sum + (it.cantidad || 1), 0);
   const total = carrito.reduce((s, p) => s + (Number(p.precio) || 0) * (p.cantidad || 1), 0);
   if (badgeCarrito) {
-    badgeCarrito.textContent = String(count);       // Muestra cantidad en el header
-    badgeCarrito.title = `Total: $${formateaCLP(total)}`; // Tooltip con total $
+    badgeCarrito.textContent = String(count);
+    badgeCarrito.title = `Total: $${formateaCLP(total)}`;
   }
   if (carritoTotalElem) {
     carritoTotalElem.textContent = total.toLocaleString('es-CL');
   }
 }
 
-// ===== Helpers =====
 function encontrarProductoPorId(id) {
   return productosGlobal.find(p => (p.id || p.cod) == id);
 }
@@ -358,7 +317,6 @@ function escapeHtml(s='') {
     .replaceAll("'",'&#39;');
 }
 
-// ===== Funcionalidad de categorías visuales (dropdown + cards) =====
 function obtenerCategoriasUnicas(productos) {
   const set = new Set();
   (productos || []).forEach(p => {
@@ -417,7 +375,6 @@ function filtrarPorCategoria(categoria) {
   const productosFiltrados = productosGlobal.filter(p => (p.categoria || p.cat) === categoria);
   if (tituloProductos) tituloProductos.textContent = `${categoria} (${productosFiltrados.length} productos)`;
   renderProductos(productosFiltrados);
-  // sincronizar select si existe
   if (selCategoria) selCategoria.value = categoria;
 }
 
@@ -429,7 +386,6 @@ function mostrarTodosLosProductos() {
   renderProductos(productosGlobal);
 }
 
-// ===== Buscador (compatible con ambos inputs) =====
 function buscarProductos() {
   const termino = (buscadorAlt?.value || inputBusqueda?.value || '').toLowerCase().trim();
   if (!termino) {
@@ -445,7 +401,6 @@ function buscarProductos() {
   renderProductos(productosFiltrados);
 }
 
-// ===== Carrito: totales y contador auxiliar =====
 function actualizarCarritoTotal() {
   const total = carrito.reduce((sum, producto) => sum + ((producto.precio || 0) * (producto.cantidad || 1)), 0);
   if (carritoTotalElem) carritoTotalElem.textContent = total.toLocaleString('es-CL');
@@ -462,7 +417,6 @@ function actualizarContadorItemsCarrito() {
   }
 }
 
-// ===== Firebase: actualizar/restaurar stock y escuchar cambios =====
 async function actualizarStockFirebase(productId, cantidad) {
   if (!db) return;
   try {
@@ -475,7 +429,6 @@ async function actualizarStockFirebase(productId, cantidad) {
       if (typeof nuevoStock !== 'undefined') {
         await productoRef.update({ stock: nuevoStock });
       }
-      // actualizar localmente también
       const index = productosGlobal.findIndex(p => p.id === productId);
       if (index !== -1 && typeof nuevoStock !== 'undefined') {
         productosGlobal[index].stock = nuevoStock;
@@ -499,7 +452,6 @@ async function restaurarStockFirebase(productId, cantidad) {
       if (typeof nuevoStock !== 'undefined') {
         await productoRef.update({ stock: nuevoStock });
       }
-      // actualizar localmente también
       const index = productosGlobal.findIndex(p => p.id === productId);
       if (index !== -1 && typeof nuevoStock !== 'undefined') {
         productosGlobal[index].stock = nuevoStock;
@@ -517,7 +469,6 @@ function escucharCambiosStock() {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "modified") {
         const productoActualizado = { id: change.doc.id, ...change.doc.data() };
-        // Actualizar en productosGlobal
         const index = productosGlobal.findIndex(p => p.id === productoActualizado.id);
         if (index !== -1) {
           productosGlobal[index] = {
@@ -532,7 +483,6 @@ function escucharCambiosStock() {
   });
 }
 
-// ===== Limpiar carrito y restaurar stock =====
 async function limpiarCarritoYRestaurarStock() {
   if (carrito.length === 0) return;
 
@@ -542,7 +492,6 @@ async function limpiarCarritoYRestaurarStock() {
       if (db && producto.id) {
         await restaurarStockFirebase(producto.id, cantidad);
       } else {
-        // restaurar localmente si no hay firebase
         const idx = productosGlobal.findIndex(p => (p.id || p.cod) === producto.id);
         if (idx !== -1 && typeof productosGlobal[idx].stock !== 'undefined') {
           productosGlobal[idx].stock += cantidad;
@@ -561,12 +510,9 @@ async function limpiarCarritoYRestaurarStock() {
   }
 }
 
-// Reemplazar función global limpiarCarrito si alguien la llama
 window.limpiarCarrito = limpiarCarritoYRestaurarStock;
 
-// ===== Utilidad: obtener la lista actualmente mostrada (según filtros visibles) =====
 function getProductosFiltradosActuales() {
-  // Si hay un término en el buscador o filtros aplicados, reutilizamos la lógica de aplicarFiltrosDesdeInputs
   let term   = (inputBusqueda?.value || buscadorAlt?.value || '').trim().toLowerCase();
   let catVal = (selCategoria?.value || '').trim();
   let minVal = Number(inputMin?.value || '');
@@ -594,4 +540,3 @@ function getProductosFiltradosActuales() {
   }
   return lista;
 }
-

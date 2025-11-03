@@ -5,7 +5,6 @@ if (window.__LVUP_CARRITO_LOADED) {
   (function(){
   "use strict";
 
-  // Evitar redeclaración si el script se carga más de una vez: almacenar config en window
   window.__LVUP_FIREBASE_CONFIG = window.__LVUP_FIREBASE_CONFIG || {
   apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
   authDomain: "tiendalevelup-ccd23.firebaseapp.com",
@@ -28,9 +27,11 @@ let firebaseEnabled = false;
 let db = null;
 const FIRESTORE_COLLECTION = 'productos';
 
-function formateaCLP(n) {
-  n = Number(n) || 0;
-  return `$ ${n.toLocaleString('es-CL')}`;
+if (typeof window.formateaCLP === 'undefined') {
+  window.formateaCLP = function formateaCLP(n) {
+    n = Number(n) || 0;
+    return `$ ${n.toLocaleString('es-CL')}`;
+  };
 }
 function escapeHtml(s = '') {
   return String(s)
@@ -56,7 +57,6 @@ function toast(mensaje) {
   setTimeout(() => n.remove(), 2200);
 }
 function debugLog(...args) {
-  // Descomenta si quieres ver logs
   // console.debug('[carrito.js]', ...args);
 }
 
@@ -236,7 +236,6 @@ function agregarAlCarrito(prodOrId, qtyParam = 1) {
   cargarCarrito();
   cargarMeta();
 
-  // Determine cantidad a agregar
   let qtyToAdd = 1;
   if (typeof prodOrId === 'object' && prodOrId !== null && prodOrId.qty !== undefined) {
     qtyToAdd = Math.max(1, Number(prodOrId.qty) || 1);
@@ -280,7 +279,6 @@ function agregarAlCarrito(prodOrId, qtyParam = 1) {
     }
     carrito[idx].qty = newQty;
   } else {
-    // Agrega con qtyToAdd
     carrito.push({ id: String(id), qty: qtyToAdd });
   }
 
@@ -375,19 +373,27 @@ function renderCarrito() {
   const totalEl = document.getElementById('total');
   const descuentoEl = document.getElementById('descuento');
   const duocValidacionEl = document.getElementById('duoc-validacion');
-
-  if (!cont) return;
   const { detalles, total, descuento, totalConDescuento } = calcularTotales();
 
+  const resumenCont = document.getElementById('resumen-items');
+  const btnLimpiar = document.getElementById('btn-limpiar-carrito');
+  const btnPagar = document.getElementById('btn-pagar');
+  const resumenEmpty = document.getElementById('resumen-empty');
+
   if (!detalles.length) {
-    cont.innerHTML = `<div class="alert alert-secondary">Tu carrito está vacío. Agrega productos desde el catálogo.</div>`;
+    if (cont) cont.innerHTML = `<div class="alert alert-secondary">Tu carrito está vacío. Agrega productos desde el catálogo.</div>`;
+    if (resumenCont) resumenCont.innerHTML = '';
     if (totalEl) totalEl.textContent = '$ 0';
     if (descuentoEl) descuentoEl.textContent = '';
     if (duocValidacionEl) duocValidacionEl.innerHTML = '';
+    if (btnLimpiar) btnLimpiar.style.display = 'none';
+    if (btnPagar) btnPagar.style.display = 'none';
+    if (resumenEmpty) resumenEmpty.style.display = 'block';
     return;
   }
 
-  cont.innerHTML = detalles.map(d => {
+  if (cont) {
+    cont.innerHTML = detalles.map(d => {
     const p = d.producto;
     const meta = d.meta || {};
     const nombre = p ? (p.nombre || p.name || p.title) : (meta.nombre || d.id);
@@ -434,7 +440,40 @@ function renderCarrito() {
         </div>
       </div>
     `;
-  }).join('');
+    }).join('');
+  }
+
+  if (resumenCont) {
+    resumenCont.innerHTML = detalles.map(d => {
+      const p = d.producto;
+      const nombre = p ? (p.nombre || p.name || p.title) : (d.meta && d.meta.nombre) || d.id;
+      const imgSmall = (p && (p.imagen || p.img)) ? (isURL(p.imagen || p.img) ? (p.imagen || p.img) : `../img/${p.imagen || p.img}`) : (d.meta && d.meta.imagen ? (isURL(d.meta.imagen) ? d.meta.imagen : `../img/${d.meta.imagen}`) : 'https://via.placeholder.com/80');
+      const unitPrice = formateaCLP(d.precio);
+      const qty = d.qty || 0;
+      return `
+          <div class="res-item d-flex align-items-center mb-2">
+            <img src="${imgSmall}" class="res-thumb rounded me-2" alt="${escapeHtml(nombre)}" onerror="this.src='https://via.placeholder.com/80'">
+            <div class="res-info flex-grow-1">
+              <div class="res-name mb-0">${escapeHtml(nombre)}</div>
+              <div class="res-meta small text-muted">${formateaCLP(d.subtotal)}</div>
+            </div>
+            <div class="res-right d-flex flex-column align-items-end">
+              <div class="unit-price">${unitPrice}</div>
+              <div class="res-qty-control mt-1">
+                <button class="btn-res-qty" onclick="cambiarCantidadCarrito('${d.id}', ${Math.max(0, qty - 1)})">−</button>
+                <span class="res-qty-num">${qty}</span>
+                <button class="btn-res-qty" onclick="cambiarCantidadCarrito('${d.id}', ${qty + 1})">+</button>
+              </div>
+              <div class="res-subtotal small mt-1">${formateaCLP(d.subtotal)}</div>
+            </div>
+          </div>
+        `;
+    }).join('');
+  }
+
+  if (btnLimpiar) btnLimpiar.style.display = 'inline-block';
+  if (btnPagar) btnPagar.style.display = 'inline-block';
+  if (resumenEmpty) resumenEmpty.style.display = 'none';
 
   if (totalEl) totalEl.textContent = formateaCLP(totalConDescuento);
   if (descuentoEl) {
@@ -461,22 +500,7 @@ function aplicarCupon() {
 }
 
 function checkout() {
-  cargarCarrito();
-  if (!carrito || carrito.length === 0) {
-    alert('Tu carrito está vacío.');
-    return;
-  }
-  const { totalConDescuento } = calcularTotales();
-  if (!confirm(`Total a pagar: ${formateaCLP(totalConDescuento)}\nProceder al pago (simulado)?`)) return;
-  carrito = [];
-  persistirCarrito();
-  localStorage.removeItem(STORAGE_KEY + '_cupon');
-  cuponAplicado = '';
-  carritoMeta = {};
-  persistirMeta();
-  actualizarCarritoUI();
-  renderCarrito();
-  alert('Pago simulado exitoso. Gracias por tu compra.');
+   window.location.href = '/assets/page/checkout.html';
 }
 
 async function __lvup_carrito_init() {
@@ -495,8 +519,14 @@ async function __lvup_carrito_init() {
     }
   }
 
+  try {
+    renderOfertas();
+  } catch (e) { /* noop */ }
+
   const btnCupon = document.getElementById('btn-aplicar-cupon');
   if (btnCupon) btnCupon.addEventListener('click', aplicarCupon);
+  const btnLimpiar = document.getElementById('btn-limpiar-carrito');
+  if (btnLimpiar) btnLimpiar.addEventListener('click', function(){ if (confirm('¿Limpiar todo el carrito?')) limpiarCarrito(); });
 
   actualizarCarritoUI();
 
@@ -537,8 +567,59 @@ window.checkout = checkout;
 window.aplicarCupon = aplicarCupon;
 window.enrichCarritoFromFirestore = enrichCarritoFromFirestore;
 window.loadProductosGlobalFromFirestore = loadProductosGlobalFromFirestore;
-// Alias por compatibilidad con páginas antiguas
 window.actualizarBadgeCarrito = actualizarCarritoUI;
+
+function limpiarCarrito() {
+  carrito = [];
+  carritoMeta = {};
+  persistirCarrito();
+  persistirMeta();
+  actualizarCarritoUI();
+  renderCarrito();
+  toast('Carrito limpiado.');
+}
+window.limpiarCarrito = limpiarCarrito;
 
   })();
 }
+
+function renderOfertas() {
+  const cont = document.getElementById('ofertas-list');
+  if (!cont) return;
+  const fuentes = (window.productosGlobal && window.productosGlobal.length) ? window.productosGlobal
+                : (window.PRODUCTOS_MOCK && window.PRODUCTOS_MOCK.length) ? window.PRODUCTOS_MOCK
+                : (window.PRODUCTOS && window.PRODUCTOS.length) ? window.PRODUCTOS
+                : [];
+  const lista = (fuentes || []).slice(0, 6);
+  cont.innerHTML = lista.map(p => {
+    const src = (p.imagen && isURL(p.imagen)) ? p.imagen : (p.imagen ? `../img/${p.imagen}` : (p.img ? `../img/${p.img}` : 'https://via.placeholder.com/400x300'));
+    const nombre = p.nombre || p.name || p.title || '';
+    const precio = formateaCLP(Number(p.precio || p.price || 0));
+    const cod = encodeURIComponent(p.cod || p.id || '');
+    return `
+      <div class="col-6 col-md-4">
+        <div class="card product-card bg-secondary text-light h-100">
+          <img src="${src}" class="card-img-top" alt="${escapeHtml(nombre)}" onerror="this.src='https://via.placeholder.com/400x300'">
+          <div class="card-body p-2 text-center">
+            <div class="small mb-1">${escapeHtml(nombre)}</div>
+            <div class="small fw-bold mb-2">${precio}</div>
+            <div class="d-grid">
+              <a class="btn btn-sm btn-outline-light" href="product.html?cod=${cod}">Ver</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+try {
+  if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', function() {
+      try { if (typeof cargarCarrito === 'function') cargarCarrito(); } catch (e) { /* noop */ }
+      try { if (typeof actualizarCarritoUI === 'function') actualizarCarritoUI(); } catch (e) { /* noop */ }
+      try { if (typeof renderCarrito === 'function') renderCarrito(); } catch (e) { /* noop */ }
+      try { if (typeof renderDetalleProducto === 'function') renderDetalleProducto(); } catch (e) { /* noop */ }
+    });
+  }
+} catch (e) { /* noop */ }

@@ -1,15 +1,6 @@
-/* Script de validaciones + guardado en Firestore
-   - Requiere Bootstrap 5 (para clases de validación)
-   - Carga Firebase v10 modular por CDN (usa <script type="module">)
-*/
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-// (Opcional) si tienes una función addUser en otro archivo, impórtala así:
-// import { addUser } from "./ruta/a/tu/servicio.js";
-
-// 1) Configuración Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCbVcEwCAFPJcvDwTCJnqtnyVJc4asYTHo",
   authDomain: "tiendalevelup-ccd23.firebaseapp.com",
@@ -25,10 +16,8 @@ const db  = getFirestore(app);
 document.addEventListener("DOMContentLoaded", () => {
   const $ = (id) => document.getElementById(id);
 
-  // --- Elementos del DOM ---
   const form              = $("formUsuario");
   const mensaje           = $("mensaje");
-
   const run               = $("run");
   const nombre            = $("nombre");
   const correo            = $("correo");
@@ -40,14 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const region            = $("region");
   const comuna            = $("comuna");
 
-  // --- Datos auxiliares ---
   const comunasPorRegion = {
     metropolitana: ["Santiago", "Providencia", "Las Condes", "Maipú", "Puente Alto"],
     valparaiso: ["Valparaíso", "Viña del Mar", "Quilpué", "Villa Alemana", "Quillota"],
     biobio: ["Concepción", "Talcahuano", "Chiguayante", "San Pedro de la Paz", "Coronel"],
   };
 
-  // --- Utilidades de UI/validación ---
   function getOrCreateFeedbackEl(input) {
     const id = input.id + "Feedback";
     let fb = document.getElementById(id);
@@ -75,7 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- RUN ---
   function normalizarRUN(value) {
     const clean = (value || "").replace(/\./g, "").replace(/\s+/g, "").toUpperCase();
     const match = clean.match(/^(\d{1,8})(-?)([\dK])$/i);
@@ -116,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  // --- Otras validaciones ---
   function validarNombre() {
     const val = (nombre.value || "").trim();
     if (val.length < 3) {
@@ -177,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const val = (telefono.value || "").replace(/\s+/g, "");
     if (!val) {
       telefono.classList.remove("is-invalid", "is-valid");
-      return true; // opcional
+      return true;
     }
     const limpio = val.replace(/^\+56/, "");
     const soloDigitos = limpio.replace(/\D/g, "");
@@ -243,14 +228,13 @@ document.addEventListener("DOMContentLoaded", () => {
     comuna.innerHTML = '<option value="">Seleccione una comuna</option>';
     for (const c of opciones) {
       const opt = document.createElement("option");
-      opt.value = c.toLowerCase().replace(/\s+/g, "-"); // slug
+      opt.value = c.toLowerCase().replace(/\s+/g, "-");
       opt.textContent = c;
       comuna.appendChild(opt);
     }
     comuna.classList.remove("is-valid", "is-invalid");
   }
 
-  // --- Listeners ---
   run.addEventListener("input", validarRUN);
   nombre.addEventListener("input", validarNombre);
   correo.addEventListener("input", validarCorreo);
@@ -266,7 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   comuna.addEventListener("change", validarComuna);
 
-  // --- Submit ---
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     mensaje.className = "";
@@ -293,13 +276,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Datos limpios
-    const runNormalizado = run.value; // 12345678-K
-    const runId = runNormalizado.replace(/[^0-9K]/gi, ""); // 12345678K
+    const runNormalizado = run.value;
+    const runId = runNormalizado.replace(/[^0-9K]/gi, "");
     const nombreVal = nombre.value.trim();
     const correoVal = correo.value.trim().toLowerCase();
 
-    // Si quieres guardar el nombre visible de la comuna además del slug:
     const comunaSlug = comuna.value;
     const comunaLabel = comuna.options[comuna.selectedIndex]?.text || "";
 
@@ -312,7 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
       comuna: comunaSlug,
       comunaLabel,
       telefono: telefono.value ? telefono.value.replace(/\s+/g, "") : null,
-      // SOLO DEMO: no guardar contraseñas planas en producción
       clave: password.value,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -322,21 +302,29 @@ document.addEventListener("DOMContentLoaded", () => {
       mensaje.className = "alert alert-info";
       mensaje.textContent = "Guardando…";
 
-      // Guardar en Firestore
       await setDoc(doc(db, "usuarios", runId), payload, { merge: true });
-
-      // (Opcional) si también quieres tu flujo addUser, descomenta e importa:
-      // await addUser(payload);
 
       mensaje.className = "alert alert-success";
       mensaje.textContent = "Guardado correctamente. Redirigiendo…";
 
-      // Redirección según correo
       setTimeout(() => {
-        if (correoVal === "admin@duoc.cl") {
+        try{
+          if (correoVal !== "admin@duoc.cl") {
+            try{
+              localStorage.setItem('lvlup_user', JSON.stringify({
+                id: runId,
+                nombre: nombreVal,
+                correo: correoVal,
+                rol: 'usuario'
+              }));
+            }catch(e){ console.warn('No se pudo guardar lvlup_user en localStorage:', e); }
+            window.location.href = `../../index.html?nombre=${encodeURIComponent(nombreVal)}`;
+            return;
+          }
           window.location.href = `../page/login.html?nombre=${encodeURIComponent(nombreVal)}`;
-        } else {
-          window.location.href = `../../index.html?nombre=${encodeURIComponent(nombreVal)}`;
+        }catch(e){
+          console.warn('Error al preparar redirección tras registro:', e);
+          window.location.href = `../../index.html`;
         }
       }, 800);
 
@@ -347,7 +335,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Inicialización
   poblarComunas();
   console.log("Firebase projectId:", app.options.projectId);
 });

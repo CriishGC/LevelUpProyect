@@ -18,9 +18,7 @@ async function includeHTML(selector, url) {
   }
 }
 
-// Asegura que el script del carrito esté cargado; devuelve una Promise
 function ensureCarritoLoaded() {
-  // Antes de cargar carrito.js, asegurarnos de que el SDK de Firebase (compat v8) esté presente
   function ensureFirebaseSDKLoaded() {
     if (window && window.firebase && typeof window.firebase.initializeApp === 'function') return Promise.resolve();
     return new Promise((resolve) => {
@@ -55,20 +53,15 @@ function ensureCarritoLoaded() {
   if (window && typeof window.agregarAlCarrito === 'function') return Promise.resolve();
   return new Promise((resolve) => {
     try {
-      // Intentar cargar SDK de Firebase (compat) si es necesario antes de carrito.js
       ensureFirebaseSDKLoaded().catch(() => {});
-      // Buscar cualquier <script> que apunte a un archivo llamado carrito.js (cualquier ruta)
       const scripts = Array.from(document.querySelectorAll('script[src]'));
       const existing = scripts.find(s => s.getAttribute('src') && s.getAttribute('src').trim().toLowerCase().endsWith('carrito.js'));
       if (existing) {
-        // Si ya está cargado completamente, resolvemos inmediatamente
         if (existing.readyState === 'complete' || existing.readyState === 'loaded') return resolve();
-        // Si aún se está cargando, atamos listeners
         existing.addEventListener('load', () => resolve());
         existing.addEventListener('error', () => resolve());
         return;
       }
-      // No existe aún → inyectar con la ruta absoluta esperada
       const s = document.createElement('script');
       s.src = '/assets/js/carrito.js';
       s.async = true;
@@ -90,17 +83,10 @@ function includeHeaderFooter(headerUrl = '/assets/include/header.html', footerUr
       }
     });
   };
-
-  // Intenta cargar carrito.js lo antes posible incluso antes de insertar el header
-  // para minimizar condiciones de carrera con otros listeners.
   try { ensureCarritoLoaded(); } catch (e) { /* noop */ }
-  // Iniciar la carga inmediatamente (no esperar a DOMContentLoaded) para reducir
-  // la posibilidad de que otros listeners de DOMContentLoaded se ejecuten antes
-  // de que el script del carrito esté disponible.
   try {
     includeHTML('#header-placeholder', headerUrl).then(runAfterHeader);
   } catch (e) {
-    // Si algo falla, también intentamos cargar en DOMContentLoaded como fallback
     document.addEventListener('DOMContentLoaded', () => includeHTML('#header-placeholder', headerUrl).then(runAfterHeader));
   }
   try {
@@ -109,3 +95,7 @@ function includeHeaderFooter(headerUrl = '/assets/include/header.html', footerUr
     document.addEventListener('DOMContentLoaded', () => includeHTML('#footer-placeholder', footerUrl));
   }
 }
+
+try {
+  if (typeof includeHeaderFooter === 'function') includeHeaderFooter();
+} catch (e) { /* noop */ }

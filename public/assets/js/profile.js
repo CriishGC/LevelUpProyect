@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.debug('Auth no disponible o error al cerrar sesión:', err);
       }
 
-      try { localStorage.removeItem('lvlup_user'); } catch (e) { /* ignore */ }
+      try { localStorage.removeItem('lvlup_user'); } catch (e) { /* ignorar */ }
       window.location.href = '/assets/page/login.html';
     });
   }

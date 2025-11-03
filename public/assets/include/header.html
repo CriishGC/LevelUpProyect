@@ -15,29 +15,26 @@
       >
       <button id="btnBuscar" class="btn-search" type="submit">Buscar</button>
     </form>
-
+    
     <div class="auth-cart">
       <a href="/assets/page/perfilUsuario.html" class="profile-link d-flex align-items-center" title="Perfil de usuario">
-        <!--<i class="bi bi-person-circle"></i>-->
+        <i class="bi bi-person-circle profile-icon" aria-hidden="true"></i>
         <span id="header-nombre-usuario" class="username d-none d-md-inline"></span>
       </a>
     </div>
-	<div class="auth-buttons">
-  <a class="btn-login cart-btn" href="/assets/page/login.html">Iniciar Sesión</a>
-  <a class="btn-signup cart-btn" href="/assets/page/registro_usuario.html">Crear Cuenta</a>
-</div>
+    <div class="auth-buttons">
+      <a class="btn-login cart-btn" href="/assets/page/login.html">Iniciar Sesión</a>
+      <a class="btn-signup cart-btn" href="/assets/page/registro_usuario.html">Crear Cuenta</a>
+    </div>
   </div>
+  <script src="/assets/js/headerAuth.js"></script>
 
   <nav class="nav-main">
     <div class=" vosabes">
       <ul class="nav-links">
         <li><a href="/index.html" class="nav-link">Inicio</a></li>
 
-        <li class="dropdown">
-          <a href="/assets/page/catalogo.html" class="nav-link">Categorías ▾</a>
-          <div id="dropdownCategorias" class="dropdown-content" aria-hidden="false"></div>
-        </li>
-
+        <li><a href="/assets/page/catalogo.html" class="nav-link">Categorías</a></li>
         <li><a href="/assets/page/ofertas.html" class="nav-link">Ofertas</a></li>
         <li><a href="/assets/page/nosotros.html" class="nav-link">Nosotros</a></li>
         <li><a href="/assets/page/blog.html" class="nav-link">Blog</a></li>

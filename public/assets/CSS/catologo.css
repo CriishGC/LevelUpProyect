@@ -1,44 +1,4 @@
-:root {
-  --accent-blue: #1E90FF;
-  --accent-green: #39FF14;
-  --card-bg: #18181c;
-  --card-border: #23272b;
-  --text-light: #fff;
-}
+/* Este archivo ahora importa el CSS principal unificado para evitar duplicados. */
+@import url("style.css");
 
-#productos-lista { display: flex; flex-wrap: wrap; gap: 1rem; }
-.product-card { border-radius: 1rem; overflow: hidden; background: var(--card-bg); box-shadow: 0 2px 12px rgba(60,255,20,0.04); transition: transform .18s; }
-.product-card:hover { transform: translateY(-6px); }
-.product-card .card-img-top { height: 180px; object-fit: cover; }
-
-/* Botón agregar */
-.btn-add-cart {
-  background: transparent;
-  color: var(--accent-green);
-  border: 1px solid var(--accent-green);
-  padding: 0.5rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-}
-.btn-add-cart:hover { background: var(--accent-green); color: #000; }
-
-/* Inputs filtros */
-#busqueda, #filtro-min, #filtro-max, #filtro-categoria {
-  background: #0f0f11; border: 1px solid #23272b; color: var(--text-light);
-}
-
-/* Badge carrito: pulso */
-#badge-carrito.carrito-updated, .carrito-updated {
-  animation: carritoPulse 420ms ease;
-}
-@keyframes carritoPulse { 0%{transform:scale(1)} 30%{transform:scale(1.08)} 100%{transform:scale(1)} }
-
-/* Mensajes y botones "no products" */
-.no-products { text-align: center; padding: 2rem; color: #cfcfcf; }
-
-/* Responsive tweaks */
-@media (max-width: 575px) {
-  .product-card .card-img-top { height: 120px; }
-  #productos-lista { gap: 0.6rem; }
-}
+/* Nota: el contenido original de catologo.css está consolidado en style.css */
