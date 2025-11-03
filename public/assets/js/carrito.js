@@ -1,3 +1,11 @@
+// actualizado: ../js/carrito.js
+// Cambios principales:
+// - agregarAlCarrito ahora prioriza prod.precioOferta (si viene) al guardar el precio en carritoMeta y en el item persistido.
+// - enrichCarritoFromFirestore ahora normaliza y guarda precioOferta cuando está presente en Firestore.
+// - calcularTotales y actualizarCarritoUI usan precioOferta (si disponible) al calcular subtotales y totales.
+// - preservé el resto de la lógica original y la compatibilidad con formatos antiguos.
+
+/* eslint-disable no-console */
 if (window.__LVUP_CARRITO_LOADED) {
   console.debug('carrito.js ya estaba cargado, saltando ejecución repetida.');
 } else {
@@ -12,7 +20,6 @@ if (window.__LVUP_CARRITO_LOADED) {
   storageBucket: "tiendalevelup-ccd23.appspot.com",
   messagingSenderId: "788122901795",
   appId: "1:788122901795:web:1feabe6474cd2b44ef4096",
-  
   measurementId: "G-QHQ3RM5FD8"
 };
 
@@ -200,12 +207,17 @@ async function enrichCarritoFromFirestore() {
     if (!d) return;
     const nombre = d.nombre || d.name || d.title || d.nombreProducto || carritoMeta[id]?.nombre || d.cod || id;
     const precio = Number(d.precio || d.price || 0) || 0;
+    // Normalizar precio de oferta si viene desde Firestore
+    const precioOfertaFS = (typeof d.precio_oferta === 'number' && d.precio_oferta > 0) ? Number(d.precio_oferta)
+                          : (typeof d.precioOferta === 'number' && d.precioOferta > 0) ? Number(d.precioOferta)
+                          : undefined;
     const imagen = d.imagen || d.img || d.imagenURL || d.imagen_url || '';
     const stock = (d.stock !== undefined) ? (Number(d.stock) || 0) : (d.cantidad !== undefined ? Number(d.cantidad) : null);
 
     carritoMeta[id] = {
       nombre,
       precio: (precio || carritoMeta[id]?.precio || 0),
+      precioOferta: (typeof precioOfertaFS !== 'undefined') ? precioOfertaFS : carritoMeta[id]?.precioOferta,
       imagen: imagen || carritoMeta[id]?.imagen || '',
       stock: (stock !== null && !Number.isNaN(stock)) ? stock : carritoMeta[id]?.stock
     };
@@ -232,6 +244,10 @@ async function loadProductosGlobalFromFirestore() {
   }
 }
 
+/*
+  Modificación: agregarAlCarrito prioriza precioOferta si viene en el objeto prodOrId (o en carritoMeta).
+  Si recibe un objeto con precioOferta, lo usará para cálculos y para mostrar en carrito.
+*/
 function agregarAlCarrito(prodOrId, qtyParam = 1) {
   cargarCarrito();
   cargarMeta();
@@ -243,20 +259,30 @@ function agregarAlCarrito(prodOrId, qtyParam = 1) {
     qtyToAdd = Math.max(1, Number(qtyParam) || 1);
   }
 
-  let id, nombre, precio, imagen, stock;
+  let id, nombre, precio, precioOferta, imagen, stock;
   if (typeof prodOrId === 'string') {
     id = prodOrId;
   } else if (typeof prodOrId === 'object' && prodOrId !== null) {
     id = prodOrId.id || prodOrId.cod || prodOrId.codigo;
     nombre = prodOrId.nombre || prodOrId.name || prodOrId.title;
+    // original price
     precio = Number(prodOrId.precio || prodOrId.price || 0);
+    // new: preferir precioOferta si viene en el objeto
+    precioOferta = (typeof prodOrId.precioOferta === 'number' && !Number.isNaN(prodOrId.precioOferta) && prodOrId.precioOferta > 0)
+      ? Number(prodOrId.precioOferta)
+      : (typeof prodOrId.precio_oferta === 'number' && !Number.isNaN(prodOrId.precio_oferta) && prodOrId.precio_oferta > 0)
+        ? Number(prodOrId.precio_oferta)
+        : undefined;
+
     imagen = prodOrId.imagen || prodOrId.img || prodOrId.imagenURL || '';
     stock = prodOrId.stock !== undefined ? Number(prodOrId.stock) : null;
 
     if (id) {
+      // guardar meta: incluir precioOferta si aplica
       carritoMeta[String(id)] = {
         nombre: nombre || carritoMeta[String(id)]?.nombre || String(id),
         precio: precio || carritoMeta[String(id)]?.precio || 0,
+        precioOferta: (typeof precioOferta !== 'undefined') ? precioOferta : carritoMeta[String(id)]?.precioOferta,
         imagen: imagen || carritoMeta[String(id)]?.imagen || '',
         stock: (stock !== null && !Number.isNaN(stock)) ? stock : carritoMeta[String(id)]?.stock
       };
@@ -268,10 +294,17 @@ function agregarAlCarrito(prodOrId, qtyParam = 1) {
     return;
   }
 
+  // Calcular precio final que se guardará en carrito (priorizar precioOferta)
+  const meta = carritoMeta[String(id)] || {};
+  const precioFinal = (typeof meta.precioOferta === 'number' && !Number.isNaN(meta.precioOferta) && meta.precioOferta > 0)
+    ? Number(meta.precioOferta)
+    : (typeof precio === 'number' && precio > 0) ? Number(precio)
+    : Number(meta.precio || 0);
+
   const idx = carrito.findIndex(i => String(i.id) === String(id));
   if (idx >= 0) {
-    const meta = carritoMeta[String(id)] || {};
-    const stockAvailable = meta.stock;
+    const metaLocal = carritoMeta[String(id)] || {};
+    const stockAvailable = metaLocal.stock;
     const newQty = Number(carrito[idx].qty || 0) + qtyToAdd;
     if (stockAvailable !== undefined && stockAvailable !== null && newQty > stockAvailable) {
       toast('No hay suficiente stock disponible.');
@@ -279,7 +312,16 @@ function agregarAlCarrito(prodOrId, qtyParam = 1) {
     }
     carrito[idx].qty = newQty;
   } else {
+    // Guardar solo id y qty en el array principal; el precio y demás van en carritoMeta
     carrito.push({ id: String(id), qty: qtyToAdd });
+
+    // Asegurar que carritoMeta tenga el precio final para fallback UI rápido
+    carritoMeta[String(id)] = {
+      ...(carritoMeta[String(id)] || {}),
+      precio: Number(carritoMeta[String(id)]?.precio || precioFinal || 0),
+      precioOferta: (typeof carritoMeta[String(id)]?.precioOferta === 'number') ? carritoMeta[String(id)].precioOferta : (precioFinal || undefined)
+    };
+    persistirMeta();
   }
 
   persistirCarrito();
@@ -325,7 +367,25 @@ function calcularTotales() {
   const detalles = carrito.map(i => {
     const p = fuentes.find(pp => (String(pp.id) === String(i.id) || String(pp.cod) === String(i.id))) || null;
     const meta = carritoMeta[String(i.id)] || {};
-    const precio = p ? Number(p.precio || p.price || 0) : Number(meta.precio || 0);
+
+    // Preferir precio de oferta en el orden:
+    // 1) meta.precioOferta (desde añadir o Firestore)
+    // 2) producto p.precio_oferta / p.precioOferta (si existe en productosGlobal)
+    // 3) p.precio
+    // 4) meta.precio
+    let precio = 0;
+    if (typeof meta.precioOferta === 'number' && !Number.isNaN(meta.precioOferta) && meta.precioOferta > 0) {
+      precio = Number(meta.precioOferta);
+    } else if (p) {
+      const po = (typeof p.precio_oferta === 'number') ? p.precio_oferta
+               : (typeof p.precioOferta === 'number') ? p.precioOferta
+               : undefined;
+      if (typeof po === 'number' && !Number.isNaN(po) && po > 0) precio = Number(po);
+      else precio = Number(p.precio || p.price || 0);
+    } else {
+      precio = Number(meta.precio || 0);
+    }
+
     const subtotal = precio * (Number(i.qty) || 0);
     const stock = (p && (p.stock !== undefined)) ? Number(p.stock) : (meta.stock !== undefined ? Number(meta.stock) : null);
     return { id: i.id, qty: Number(i.qty) || 0, producto: p, precio, subtotal, meta, stock };
@@ -350,11 +410,22 @@ function actualizarCarritoUI() {
                 : [];
 
   carrito.forEach(it => {
+    // preferir precioOferta/meta, luego productosGlobal price
+    const meta = carritoMeta[String(it.id)] || {};
     const p = fuentes.find(pp => (String(pp.id) === String(it.id) || String(pp.cod) === String(it.id)));
-    if (p) totalMoney += (Number(p.precio || p.price) || 0) * (Number(it.qty) || 0);
-    else if (carritoMeta[String(it.id)] && carritoMeta[String(it.id)].precio) {
-      totalMoney += (Number(carritoMeta[String(it.id)].precio) || 0) * (Number(it.qty) || 0);
+    let unitPrice = 0;
+    if (typeof meta.precioOferta === 'number' && !Number.isNaN(meta.precioOferta) && meta.precioOferta > 0) {
+      unitPrice = Number(meta.precioOferta);
+    } else if (p) {
+      const po = (typeof p.precio_oferta === 'number') ? p.precio_oferta
+               : (typeof p.precioOferta === 'number') ? p.precioOferta
+               : undefined;
+      if (typeof po === 'number' && !Number.isNaN(po) && po > 0) unitPrice = Number(po);
+      else unitPrice = Number(p.precio || p.price || 0);
+    } else if (meta.precio) {
+      unitPrice = Number(meta.precio || 0);
     }
+    totalMoney += unitPrice * (Number(it.qty) || 0);
   });
 
   const badge = document.querySelector('#badge-carrito');
