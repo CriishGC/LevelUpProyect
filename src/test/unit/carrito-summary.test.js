@@ -1,6 +1,3 @@
-// Test de resumen específico para el carrito
-// Este test agrupa los resultados principales
-
 describe('RESUMEN - Pruebas del Sistema de Carrito', function() {
     
     // Función para calcular total del carrito

@@ -1,7 +1,5 @@
 import React from 'react';
 
-// Asegúrate de importar tus estilos aquí o en App.js si no se cargan globalmente
-// import '../App.css'; 
 
 const Home = () => {
   return (
@@ -13,8 +11,6 @@ const Home = () => {
             href="/" 
             className="d-flex align-items-center text-decoration-none me-3"
             onClick={(e) => {
-                // Aquí iría tu lógica de navegación o mostrarSeccion('home')
-                // e.preventDefault(); 
             }}
           >
             <img src="assets/img/logo.png" alt="Logo" width="80px" height="80px" className="me-2" />

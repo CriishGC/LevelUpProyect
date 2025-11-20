@@ -1,77 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import useCart from '../../hooks/useCart';
+import { useToast } from '../../context/ToastContext';
 
 const Carrito = () => {
-  // Estados para manejar el carrito y la UI
-  const [carrito, setCarrito] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [cupon, setCupon] = useState("");
-  const [mensajeDescuento, setMensajeDescuento] = useState("");
-  const [descuentoAplicado, setDescuentoAplicado] = useState(0);
+  const { items, totalConDescuento, total, descuento, cupon, changeQty, removeItem, applyCoupon, checkout } = useCart();
+  const [codigoCupon, setCodigoCupon] = useState('');
+  const toast = useToast();
 
-  // Cargar carrito desde localStorage al montar el componente
-  useEffect(() => {
-    const carritoGuardado = JSON.parse(localStorage.getItem('carrito')) || [];
-    setCarrito(carritoGuardado);
-    calcularTotal(carritoGuardado, 0);
-  }, []);
-
-  // Función para calcular el total (considerando descuentos)
-  const calcularTotal = (productos, descuento = 0) => {
-    const sumaSubtotal = productos.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    const totalConDescuento = sumaSubtotal * (1 - descuento);
-    setTotal(Math.round(totalConDescuento));
-  };
-
-  // Actualizar cantidad de un producto
-  const cambiarCantidad = (id, cambio) => {
-    const nuevoCarrito = carrito.map(item => {
-      if (item.id === id) {
-        const nuevaCantidad = item.cantidad + cambio;
-        return { ...item, cantidad: nuevaCantidad > 0 ? nuevaCantidad : 1 };
-      }
-      return item;
-    });
-    
-    setCarrito(nuevoCarrito);
-    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
-    calcularTotal(nuevoCarrito, descuentoAplicado);
-    
-    // Evento para actualizar el badge del header (si el header escucha este evento)
-    window.dispatchEvent(new Event("storage"));
-  };
-
-  // Eliminar producto del carrito
-  const eliminarProducto = (id) => {
-    const nuevoCarrito = carrito.filter(item => item.id !== id);
-    setCarrito(nuevoCarrito);
-    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
-    calcularTotal(nuevoCarrito, descuentoAplicado);
-    window.dispatchEvent(new Event("storage"));
-  };
-
-  // Lógica para aplicar cupón
-  const aplicarCupon = () => {
-    if (cupon.toUpperCase() === "DUOCUC") {
-      const porcentajeDescuento = 0.10; // 10%
-      setDescuentoAplicado(porcentajeDescuento);
-      setMensajeDescuento("¡Cupón DUOCUC aplicado exitosamente! (10% dcto)");
-      calcularTotal(carrito, porcentajeDescuento);
-    } else {
-      setDescuentoAplicado(0);
-      setMensajeDescuento("El cupón ingresado no es válido.");
-      calcularTotal(carrito, 0);
-    }
-  };
-
-  // Simulación de proceso de pago
-  const handleCheckout = () => {
-    if (carrito.length === 0) {
-      alert("Tu carrito está vacío.");
-      return;
-    }
-    alert(`Procesando pago por $${total.toLocaleString('es-CL')}...`);
-    // Aquí iría la integración con WebPay o redirección
-  };
+  function discountMessage(codigo, descuentoValue) {
+    if (!codigo) return '';
+    if (descuentoValue > 0) return `Cupón ${codigo} aplicado — ahorro: $${Number(descuentoValue).toLocaleString('es-CL')}`;
+    return `Cupón ${codigo} no aplica descuento.`;
+  }
 
   return (
     <div className="carrito-container">
@@ -90,14 +30,14 @@ const Carrito = () => {
               <li className="nav-item"><a className="nav-link text-white" href="/contacto">Contacto</a></li>
             </ul>
           </nav>
-          <div className="d-flex align-items-center ms-auto gap-3">
+            <div className="d-flex align-items-center ms-auto gap-3">
             <a href="/perfil" className="text-white fs-5">
               <i className="bi bi-person-circle"></i>
             </a>
             <a href="/carrito" className="text-white fs-5">
               <i className="bi bi-cart"></i>
             </a>
-            <span className="text-white ms-2">Carrito (<span id="badge-carrito">{carrito.reduce((acc, item) => acc + item.cantidad, 0)}</span>)</span>
+            <span className="text-white ms-2">Carrito (<span id="badge-carrito">{items.reduce((acc, it) => acc + (Number(it.qty) || 0), 0)}</span>)</span>
           </div>
         </div>
       </header>
@@ -108,36 +48,36 @@ const Carrito = () => {
           <div className="col-lg-8 col-md-7">
             <h2 className="carrito-title mb-4 text-white font-orbitron">Mi carrito de compras</h2>
             
-            <div id="carrito-lista">
-              {carrito.length === 0 ? (
+              <div id="carrito-lista">
+              {items.length === 0 ? (
                 <div className="alert alert-info">Tu carrito está vacío. <a href="/catalogo" className="alert-link">Ir a comprar</a>.</div>
               ) : (
-                carrito.map((item) => (
-                  <div key={item.id} className="card mb-3 bg-dark text-white border-secondary shadow-sm">
+                items.map((d) => (
+                  <div key={d.id} className="card mb-3 bg-dark text-white border-secondary shadow-sm">
                     <div className="row g-0 align-items-center">
                       <div className="col-md-3 p-2 text-center">
                         <img 
-                          src={item.imagen || "/assets/img/logo.png"} 
+                          src={d.imagen || "/assets/img/logo.png"} 
                           className="img-fluid rounded-3" 
-                          alt={item.nombre} 
+                          alt={d.nombre}
                           style={{ maxHeight: '100px', objectFit: 'contain' }}
                         />
                       </div>
                       <div className="col-md-7">
                         <div className="card-body">
-                          <h5 className="card-title font-orbitron">{item.nombre}</h5>
+                          <h5 className="card-title font-orbitron">{d.nombre}</h5>
                           <p className="card-text text-success fw-bold mb-1">
-                            Precio: ${parseInt(item.precio).toLocaleString('es-CL')}
+                            Precio: ${Number(d.precio).toLocaleString('es-CL')}
                           </p>
                           <div className="d-flex align-items-center mt-2">
                             <button 
                               className="btn btn-sm btn-outline-light me-2" 
-                              onClick={() => cambiarCantidad(item.id, -1)}
+                              onClick={() => changeQty(d.id, Math.max(0, d.qty - 1))}
                             >-</button>
-                            <span className="fw-bold mx-2">{item.cantidad}</span>
+                            <span className="fw-bold mx-2">{d.qty}</span>
                             <button 
                               className="btn btn-sm btn-outline-light ms-2" 
-                              onClick={() => cambiarCantidad(item.id, 1)}
+                              onClick={() => changeQty(d.id, d.qty + 1)}
                             >+</button>
                           </div>
                         </div>
@@ -145,7 +85,7 @@ const Carrito = () => {
                       <div className="col-md-2 text-end p-3">
                         <button 
                           className="btn btn-danger btn-sm" 
-                          onClick={() => eliminarProducto(item.id)}
+                          onClick={() => removeItem(d.id)}
                           title="Eliminar producto"
                         >
                           <i className="bi bi-trash"></i>
@@ -165,13 +105,12 @@ const Carrito = () => {
               
               <div className="d-flex justify-content-between mb-2">
                 <span>Subtotal:</span>
-                <span>${carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0).toLocaleString('es-CL')}</span>
+                <span>${Number(total).toLocaleString('es-CL')}</span>
               </div>
-              
-              {descuentoAplicado > 0 && (
+              {descuento > 0 && (
                 <div className="d-flex justify-content-between mb-2 text-success">
                   <span>Descuento:</span>
-                  <span>- {(descuentoAplicado * 100)}%</span>
+                  <span>- ${Number(descuento).toLocaleString('es-CL')}</span>
                 </div>
               )}
 
@@ -179,7 +118,7 @@ const Carrito = () => {
               
               <div className="d-flex justify-content-between mb-3 fs-4 fw-bold font-orbitron">
                 <span>TOTAL:</span>
-                <span id="total">${total.toLocaleString('es-CL')}</span>
+                <span id="total">${Number(totalConDescuento).toLocaleString('es-CL')}</span>
               </div>
 
               {/* Sección de Cupón */}
@@ -191,25 +130,29 @@ const Carrito = () => {
                     className="form-control" 
                     placeholder="Código" 
                     id="input-cupon"
-                    value={cupon}
-                    onChange={(e) => setCupon(e.target.value)}
+                    value={codigoCupon}
+                    onChange={(e) => setCodigoCupon(e.target.value)}
                   />
                   <button 
                     className="btn btn-dark border-light" 
-                    onClick={aplicarCupon}
+                    onClick={() => {
+                      const ok = applyCoupon(codigoCupon);
+                      if (!ok) toast.showToast('Cupón no válido', { type: 'error' });
+                      else toast.showToast('Cupón aplicado', { type: 'success' });
+                    }}
                   >APLICAR</button>
                 </div>
-                {mensajeDescuento && (
-                  <small className={`d-block mt-2 ${descuentoAplicado > 0 ? 'text-success' : 'text-warning'}`}>
-                    {mensajeDescuento}
+                {cupon && (
+                  <small className={`d-block mt-2 ${descuento > 0 ? 'text-success' : 'text-warning'}`}>
+                    {discountMessage(cupon, descuento)}
                   </small>
                 )}
               </div>
 
               <button 
                 className="btn btn-success w-100 py-2 fw-bold text-uppercase" 
-                onClick={handleCheckout}
-                disabled={carrito.length === 0}
+                onClick={checkout}
+                disabled={items.length === 0}
               >
                 Ir a Pagar
               </button>

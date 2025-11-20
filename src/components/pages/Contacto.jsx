@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useToast } from '../../context/ToastContext';
 
 const Contacto = () => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -18,7 +20,7 @@ const Contacto = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Datos del formulario:", formData);
-    alert("¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.");
+    toast.showToast('¡Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.', { type: 'success' });
     // Aquí iría tu lógica para enviar los datos a Firebase o EmailJS
     setFormData({ nombre: '', email: '', mensaje: '' });
   };

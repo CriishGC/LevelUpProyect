@@ -10,6 +10,11 @@ import Carrito from "../components/pages/Carrito";
 import Checkout from "../components/pages/Checkout";
 import CompraExitosa from "../components/pages/CompraExitosa";
 import ErrorPago from "../components/pages/ErrorPago";
+import Blog from "../components/pages/Blog";
+import Ofertas from "../components/pages/Ofertas";
+import Pedidos from "../components/pages/Pedidos";
+import Product from "../components/pages/Product";
+import Registro from "../components/pages/Registro";
 
 const RouterConfg = () => (
     <>  
@@ -21,6 +26,11 @@ const RouterConfg = () => (
             <Route path="/catalogo" component={Catalogo} />
             <Route path="/carrito" component={Carrito} />
             <Route path="/checkout" component={Checkout} />
+            <Route path="/blog" component={Blog} />
+            <Route path="/ofertas" component={Ofertas} />
+            <Route path="/pedidos" component={Pedidos} />
+            <Route path="/product/:id" component={Product} />
+            <Route path="/registro" component={Registro} />
             <Route path="/exito" component={CompraExitosa} />
             <Route path="/error" component={ErrorPago} />
         </Switch>
