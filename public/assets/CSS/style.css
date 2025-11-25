@@ -634,14 +634,22 @@ body {
   border-left: 3px solid transparent;
   border-radius: 4px 0 0 4px;
 }
-.dashboard-nav a.active,
-.dashboard-nav a:hover {
+/* ESTADO ACTIVO */
+.dashboard-nav a.active {
   background: #18181c;
   color: var(--accent-green);
   border-left: 3px solid var(--accent-green);
   font-weight: bold;
   box-shadow: 0 0 8px #39FF1455;
 }
+
+/* ESTADO HOVER (solo cuando NO está activo) */
+.dashboard-nav a:hover:not(.active) {
+  background: #0d0d10;
+  color: #39FF14aa;
+  border-left: 3px solid transparent;
+}
+
 .dashboard-nav i {
   margin-right: 14px;
   width: 18px;
@@ -1285,3 +1293,157 @@ body {
 
 .oferta-price { color: #fff; font-weight: 800; }
 .precio-oferta { color: var(--accent-green); }
+
+
+/* ====== AJUSTES PANEL ADMIN ====== */
+
+/* Barra superior más delgada y sin tanto espacio azul */
+.dashboard-main-header {
+  padding: 12px 24px;
+  height: auto;
+  box-sizing: border-box;
+}
+
+/* Que el contenido principal tenga padding y se pueda hacer scroll
+   sin que se deforme todo el layout */
+.dashboard-main-section {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+}
+
+/* Centrar el contenido dentro del admin y limitar el ancho máximo */
+.dashboard-main-section > section {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* El bloque gris oscuro (carrito-main) como “tarjeta grande” centrada */
+.carrito-main {
+  background: #18181c;
+  border-radius: 18px;
+  box-shadow: 0 0 18px #1e90ff19;
+  margin: 1.5rem auto 2.5rem auto;
+  padding: 1.5rem 1.25rem;
+}
+
+/* Hero superior también centrado y alineado con el contenedor */
+.hero-ofertas {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ====== ESTILO TABLAS CRUD (Órdenes, Productos, Usuarios, etc.) ====== */
+
+.crud-header h3 {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  color: #ffffff;
+}
+
+.crud-actions select {
+  background: #0f1112;
+  border: 1px solid #23272b;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+
+/* Contenedor que hace scroll solo en la tabla grande */
+.table-responsive {
+  background: #101014;
+  border-radius: 12px;
+  border: 1px solid #23272b;
+  padding: 0;
+  max-height: calc(100vh - 320px); /* tabla scrollea, cabecera se queda */
+  overflow: auto;
+}
+
+/* Tabla base */
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 900px; /* evita que se aprieten demasiado las columnas */
+}
+
+/* Encabezado de tabla fijo y con fondo */
+.crud-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #15151a;
+}
+
+.crud-table th,
+.crud-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #23272b;
+  white-space: nowrap;
+}
+
+.crud-table th {
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #cfd8dc;
+}
+
+/* Filas alternadas y hover */
+.crud-table tbody tr:nth-child(odd) {
+  background: #101015;
+}
+.crud-table tbody tr:nth-child(even) {
+  background: #15151b;
+}
+.crud-table tbody tr:hover {
+  background: #1d1d24;
+}
+
+/* Texto cuando no hay datos */
+.crud-table .no-data {
+  text-align: center;
+  padding: 20px 12px;
+  color: #9aa4b2;
+}
+
+/* Botones de acciones dentro de la tabla (editar, borrar, etc.) 
+   si usas iconos pequeños tipo <button> o <i> */
+.crud-table td:last-child {
+  text-align: center;
+}
+.crud-table td:last-child button,
+.crud-table td:last-child i {
+  margin: 0 2px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .dashboard-sidebar {
+    height: 64px;
+    padding-right: 8px;
+  }
+
+  .dashboard-main-section {
+    padding: 12px 12px 18px;
+  }
+
+  .dashboard-main-section > section {
+    max-width: 100%;
+  }
+
+  .table-responsive {
+    max-height: none;
+  }
+}

@@ -1,57 +1,657 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Level-Up Gamer</title>
-    <link rel="icon" href="../img/logo.png" type="image/x-icon">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="../CSS/style.css"/>
-    <link rel="stylesheet" href="../CSS/dashboard.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+
+    <!-- Tu CSS unificado -->
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Iconos Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-<div class="dashboard-container">
-    <aside class="dashboard-sidebar">
-      <div>
-        <div class="dashboard-logo">
-          <img src="../img/logo.png" alt="Logo Level-Up" width="42" height="42" style="margin-right:10px;">
-          Level-Up
+    <!-- CONTENEDOR PRINCIPAL DEL DASHBOARD -->
+    <div class="dashboard-container">
+        <!-- SIDEBAR -->
+        <aside class="dashboard-sidebar">
+            <!-- Logo / título -->
+            <div class="dashboard-logo">
+                <i class="bi bi-controller"></i>
+                <span class="font-orbitron">Tienda Online</span>
+            </div>
+
+            <!-- Navegación principal -->
+            <nav class="dashboard-nav">
+                <ul>
+                    <li>
+                        <a href="#dashboard" class="active" onclick="navegarA('dashboard')">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#ordenes" onclick="navegarA('ordenes')">
+                            <i class="bi bi-clipboard-check"></i>
+                            <span>Órdenes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#productos" onclick="navegarA('productos')">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Productos</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#categorias" onclick="navegarA('categorias')">
+                            <i class="bi bi-tags"></i>
+                            <span>Categorías</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#usuarios" onclick="navegarA('usuarios')">
+                            <i class="bi bi-people"></i>
+                            <span>Usuarios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#reportes" onclick="navegarA('reportes')">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Zona inferior: cuenta + acciones -->
+            <div class="dashboard-bottom">
+                <a href="#perfil" onclick="navegarA('perfil')">
+                    <i class="bi bi-person"></i>
+                    <span>Perfil</span>
+                </a>
+                <a href="javascript:irATienda()">
+                    <i class="bi bi-shop"></i>
+                    <span>Tienda</span>
+                </a>
+                <a href="javascript:cerrarSesion()">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="dashboard-main-content">
+            <!-- Header superior del main -->
+            <div class="dashboard-main-header">
+                <div>
+                    <span class="font-orbitron">Panel de Administración</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <span id="userEmail" class="username">admin@mitienda.com</span>
+                    <i class="bi bi-bell bell"></i>
+                </div>
+            </div>
+
+            <!-- Sección principal scrollable -->
+            <div class="dashboard-main-section">
+                <!-- DASHBOARD -->
+                <section id="dashboard">
+                    <!-- Hero de bienvenida con tu estilo de ofertas -->
+                    <div class="hero-ofertas">
+                        <h1 class="font-orbitron text-neon" id="bienvenidoPrincipal">
+                            Bienvenido al Panel de Administración
+                        </h1>
+                        <p class="text-secondary">
+                            Control total de órdenes, productos, usuarios y reportes de tu tienda online.
+                        </p>
+                    </div>
+
+                    <!-- Cards de resumen usando product-card -->
+                    <h2 class="section-title">Resumen General</h2>
+                    <div class="ofertas-grid">
+                        <!-- Compras -->
+                        <article class="product-card">
+                            <div class="card-body">
+                                <div style="font-size:1.6rem;margin-bottom:0.4rem;">
+                                    <i class="bi bi-cart"></i>
+                                </div>
+                                <h3 style="margin:0 0 0.25rem 0;">Compras</h3>
+                                <p id="totalCompras" style="font-size:1.6rem;font-weight:700;margin:0;">
+                                    0
+                                </p>
+                                <p class="text-secondary" style="margin-top:0.3rem;">
+                                    Probabilidad de aumento:
+                                    <span id="proyeccionCompras">0</span>%
+                                </p>
+                            </div>
+                        </article>
+
+                        <!-- Productos -->
+                        <article class="product-card">
+                            <div class="card-body">
+                                <div style="font-size:1.6rem;margin-bottom:0.4rem;">
+                                    <i class="bi bi-box"></i>
+                                </div>
+                                <h3 style="margin:0 0 0.25rem 0;">Productos</h3>
+                                <p id="totalProductos" style="font-size:1.6rem;font-weight:700;margin:0;">
+                                    0
+                                </p>
+                                <p class="text-secondary" style="margin-top:0.3rem;">
+                                    Inventario actual:
+                                    <span id="inventarioTotal">0</span>
+                                </p>
+                            </div>
+                        </article>
+
+                        <!-- Usuarios -->
+                        <article class="product-card">
+                            <div class="card-body">
+                                <div style="font-size:1.6rem;margin-bottom:0.4rem;">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h3 style="margin:0 0 0.25rem 0;">Usuarios</h3>
+                                <p id="totalUsuarios" style="font-size:1.6rem;font-weight:700;margin:0;">
+                                    0
+                                </p>
+                                <p class="text-secondary" style="margin-top:0.3rem;">
+                                    Nuevos este mes:
+                                    <span id="nuevosUsuariosMes">0</span>
+                                </p>
+                            </div>
+                        </article>
+                    </div>
+
+                    <!-- Navegación tipo “tarjetas de categoría” -->
+                    <h2 class="section-title">Accesos rápidos</h2>
+                    <div class="cards-categorias">
+                        <div class="categoria-card" onclick="navegarA('dashboard')">
+                            <div class="categoria-img">
+                                <i class="bi bi-speedometer2"></i>
+                            </div>
+                            <div class="categoria-nombre">Dashboard</div>
+                            <p class="text-secondary">
+                                Visión general de métricas y estadísticas clave del sistema.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('ordenes')">
+                            <div class="categoria-img">
+                                <i class="bi bi-cart-check"></i>
+                            </div>
+                            <div class="categoria-nombre">Órdenes</div>
+                            <p class="text-secondary">
+                                Gestión y seguimiento de todas las órdenes de compras.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('productos')">
+                            <div class="categoria-img">
+                                <i class="bi bi-box"></i>
+                            </div>
+                            <div class="categoria-nombre">Productos</div>
+                            <p class="text-secondary">
+                                Administra inventario y detalles de productos.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('categorias')">
+                            <div class="categoria-img">
+                                <i class="bi bi-tags"></i>
+                            </div>
+                            <div class="categoria-nombre">Categorías</div>
+                            <p class="text-secondary">
+                                Organiza productos por categorías para mejor navegación.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('usuarios')">
+                            <div class="categoria-img">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div class="categoria-nombre">Usuarios</div>
+                            <p class="text-secondary">
+                                Gestión de cuentas y roles dentro del sistema.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('reportes')">
+                            <div class="categoria-img">
+                                <i class="bi bi-bar-chart"></i>
+                            </div>
+                            <div class="categoria-nombre">Reportes</div>
+                            <p class="text-secondary">
+                                Informes detallados sobre las operaciones del sistema.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('perfil')">
+                            <div class="categoria-img">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <div class="categoria-nombre">Perfil</div>
+                            <p class="text-secondary">
+                                Administra tu información personal y ajustes de cuenta.
+                            </p>
+                        </div>
+
+                        <div class="categoria-card" onclick="navegarA('tienda')">
+                            <div class="categoria-img">
+                                <i class="bi bi-shop"></i>
+                            </div>
+                            <div class="categoria-nombre">Tienda</div>
+                            <p class="text-secondary">
+                                Visualiza la tienda en tiempo real y sus métricas.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==================== SECCIONES CRUD ==================== -->
+
+                <!-- ÓRDENES -->
+                <section id="ordenes" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Gestión de Órdenes</h2>
+                        <p class="text-secondary">
+                            Administra y realiza seguimiento de todas las órdenes de compra.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="crud-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                            <h3>Lista de Órdenes</h3>
+                            <div class="crud-actions" style="display:flex;gap:0.5rem;align-items:center;">
+                                <select id="filtroEstado" onchange="filtrarOrdenes()">
+                                    <option value="">Todos los estados</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="procesando">Procesando</option>
+                                    <option value="completado">Completado</option>
+                                    <option value="cancelado">Cancelado</option>
+                                </select>
+                                <button class="btn-add-cart-outline" onclick="cargarOrdenes()">
+                                    <i class="bi bi-arrow-repeat"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="margin-top:1rem;overflow:auto;">
+                            <table class="crud-table" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordenes-tbody">
+                                    <tr>
+                                        <td colspan="6" class="no-data">Haz clic en Actualizar para cargar las órdenes</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PRODUCTOS -->
+                <section id="productos" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Gestión de Productos</h2>
+                        <p class="text-secondary">
+                            Administra el inventario y detalles de productos.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="crud-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                            <h3>Lista de Productos</h3>
+                            <div class="crud-actions" style="display:flex;gap:0.5rem;">
+                                <button class="btn-add-cart-outline" onclick="mostrarModalProducto()">
+                                    <i class="bi bi-plus-circle"></i> Nuevo Producto
+                                </button>
+                                <button class="btn-add-cart-outline" onclick="cargarProductos()">
+                                    <i class="bi bi-arrow-repeat"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="margin-top:1rem;overflow:auto;">
+                            <table class="crud-table" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Categoría</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productos-tbody">
+                                    <tr>
+                                        <td colspan="6" class="no-data">Haz clic en Actualizar para cargar los productos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CATEGORÍAS -->
+                <section id="categorias" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Gestión de Categorías</h2>
+                        <p class="text-secondary">
+                            Categorías extraídas del campo "categoria" de los productos.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="crud-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                            <h3>Categorías de Productos</h3>
+                            <div class="crud-actions" style="display:flex;gap:0.5rem;">
+                                <button class="btn-add-cart-outline" onclick="crearCategoria()">
+                                    <i class="bi bi-plus-circle"></i> Nueva Categoría
+                                </button>
+                                <button class="btn-add-cart-outline" onclick="cargarCategorias()">
+                                    <i class="bi bi-arrow-repeat"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="crud-info" style="display:flex;align-items:center;gap:0.5rem;margin-top:0.8rem;">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Las categorías se extraen automáticamente del campo "categoria" de los productos en Firestore</span>
+                        </div>
+
+                        <div class="table-responsive" style="margin-top:1rem;overflow:auto;">
+                            <table class="crud-table" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Descripción</th>
+                                        <th>Estado</th>
+                                        <th>Productos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categorias-tbody">
+                                    <tr>
+                                        <td colspan="5" class="no-data">
+                                            <i class="bi bi-inbox"></i>
+                                            <p>Haz clic en Actualizar para cargar las categorías</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- USUARIOS -->
+                <section id="usuarios" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Gestión de Usuarios</h2>
+                        <p class="text-secondary">
+                            Administra cuentas de usuarios y sus roles dentro del sistema.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="crud-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                            <h3>Lista de Usuarios</h3>
+                            <div class="crud-actions" style="display:flex;gap:0.5rem;">
+                                <button class="btn-add-cart-outline" onclick="mostrarModalUsuario()">
+                                    <i class="bi bi-person-plus"></i> Nuevo Usuario
+                                </button>
+                                <button class="btn-add-cart-outline" onclick="cargarUsuarios()">
+                                    <i class="bi bi-arrow-repeat"></i> Actualizar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive" style="margin-top:1rem;overflow:auto;">
+                            <table class="crud-table" style="width:100%;border-collapse:collapse;">
+                                <thead>
+                                    <tr>
+                                        <th>RUN</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Clave</th>
+                                        <th>Fecha</th>
+                                        <th>Teléfono</th>
+                                        <th>Dirección</th>
+                                        <th>Rol</th>
+                                        <th>Estado</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usuarios-tbody">
+                                    <tr>
+                                        <td colspan="11" class="no-data">Haz clic en Actualizar para cargar los usuarios</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- REPORTES -->
+                <section id="reportes" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Reportes y Análisis</h2>
+                        <p class="text-secondary">
+                            Genera informes detallados del sistema.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="crud-header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                            <h3>Reportes del Sistema</h3>
+                            <div class="filtros" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                                <input type="date" id="fechaInicio" value="">
+                                <input type="date" id="fechaFin" value="">
+                                <button class="btn-add-cart-outline" onclick="generarReporte()">
+                                    <i class="bi bi-graph-up"></i> Generar Reporte
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="reportes-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1rem;">
+                            <div class="reporte-card bg-secondary" style="padding:1rem;border-radius:12px;">
+                                <h4>Ventas del Período</h4>
+                                <div class="reporte-contenido" id="reporte-ventas">
+                                    <p class="text-secondary">Selecciona un período y genera el reporte</p>
+                                </div>
+                            </div>
+                            <div class="reporte-card bg-secondary" style="padding:1rem;border-radius:12px;">
+                                <h4>Productos Más Vendidos</h4>
+                                <div class="reporte-contenido" id="reporte-productos">
+                                    <p class="text-secondary">Selecciona un período y genera el reporte</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PERFIL -->
+                <section id="perfil" style="display:none;">
+                    <div class="hero-ofertas">
+                        <h2 class="font-orbitron text-neon">Perfil de Usuario</h2>
+                        <p class="text-secondary">
+                            Administra tu información personal.
+                        </p>
+                    </div>
+
+                    <div class="carrito-main">
+                        <div class="profile-form">
+                            <form onsubmit="actualizarPerfil(event)">
+                                <div class="form-group">
+                                    <label for="profileNombre">Nombre Completo</label>
+                                    <input type="text" id="profileNombre" value="" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profileCorreo">Email</label>
+                                    <input type="email" id="profileCorreo" value="" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profileTelefono">Teléfono</label>
+                                    <input type="tel" id="profileTelefono" value="">
+                                </div>
+                                <div class="form-actions" style="margin-top:1rem;">
+                                    <button type="submit" class="btn-add-cart-outline">
+                                        Actualizar Perfil
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div> <!-- fin dashboard-main-section -->
+        </main>
+    </div>
+
+    <!-- ==================== MODALES ==================== -->
+
+    <!-- Modal Productos -->
+    <div id="modalProducto" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('modalProducto')">&times;</span>
+            <h3 id="modalProductoTitulo">Nuevo Producto</h3>
+            <form id="formProducto" onsubmit="guardarProducto(event)">
+                <input type="hidden" id="productoId">
+                <div class="form-group">
+                    <label for="productoNombre">Nombre</label>
+                    <input type="text" id="productoNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="productoPrecio">Precio</label>
+                    <input type="number" id="productoPrecio" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productoStock">Stock</label>
+                    <input type="number" id="productoStock" required>
+                </div>
+                <div class="form-group">
+                    <label for="productoCategoria">Categoría</label>
+                    <input type="text" id="productoCategoria">
+                </div>
+                <div class="form-group">
+                    <label for="productoImagen">URL de Imagen</label>
+                    <input type="url" id="productoImagen" placeholder="https://ejemplo.com/imagen.jpg">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-add-cart-outline" onclick="cerrarModal('modalProducto')">Cancelar</button>
+                    <button type="submit" class="btn-add-cart">Guardar</button>
+                </div>
+            </form>
         </div>
-        <nav class="dashboard-nav">
-          <ul>
-            <li><a href="#" class="active"><i class="fa-solid fa-table-cells-large"></i>Panel</a></li>
-            <li><a href="pedidos.html"><i class="fa-solid fa-receipt"></i>Pedidos</a></li>
-            <li><a href="#"><i class="fa-solid fa-boxes-stacked"></i>Inventario</a></li>
-            <li><a href="#"><i class="fa-solid fa-chart-simple"></i>Reportes</a></li>
-            <li><a href="#"><i class="fa-solid fa-user-tie"></i>Empleados</a></li>
-            <li><a href="#"><i class="fa-solid fa-users"></i>Clientes</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div class="dashboard-bottom">
-        <a href="#"><i class="fa-solid fa-gear"></i>Configuraciones</a>
-        <a href="#"><i class="fa-solid fa-user"></i>+Perfil</a>
-        <a href="#"><i class="fa-solid fa-magnifying-glass"></i>Buscar</a>
-        <a href="#"><i class="fa-solid fa-circle-question"></i>Ayuda</a>
-        <a href="#"><i class="fa-solid fa-user"></i>Perfil</a>
-      </div>
-    </aside>
-    <main class="dashboard-main-content">
-      <div class="dashboard-main-header">
-        <span>¡HOLA Administrador!</span>
-        <i class="fa-regular fa-bell bell"></i>
-      </div>
-      <section class="dashboard-main-section">
-        <div class="dashboard-top-half"></div>
-        <div class="dashboard-bottom-half"></div>
-      </section>
-    </main>
-  </div>
-  <script src="dashboard.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="../js/funciones.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    </div>
+
+    <!-- Modal Categorías -->
+    <div id="modalCategoria" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('modalCategoria')">&times;</span>
+            <h3 id="modalCategoriaTitulo">Nueva Categoría</h3>
+            <form id="formCategoria" onsubmit="guardarCategoria(event)">
+                <input type="hidden" id="categoriaId">
+                <div class="form-group">
+                    <label for="categoriaNombre">Nombre</label>
+                    <input type="text" id="categoriaNombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoriaDescripcion">Descripción</label>
+                    <textarea id="categoriaDescripcion"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-add-cart-outline" onclick="cerrarModal('modalCategoria')">Cancelar</button>
+                    <button type="submit" class="btn-add-cart">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Usuarios -->
+    <div id="modalUsuario" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('modalUsuario')">&times;</span>
+            <h3 id="modalUsuarioTitulo">Nuevo Usuario</h3>
+            <form id="formUsuario" onsubmit="guardarUsuario(event)">
+                <input type="hidden" id="usuarioId">
+
+                <div class="form-group">
+                    <label for="usuarioRun">RUN *</label>
+                    <input type="text" id="usuarioRun" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioNombre">Nombre Completo *</label>
+                    <input type="text" id="usuarioNombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioEmail">Email *</label>
+                    <input type="email" id="usuarioEmail" required>
+                </div>
+
+                <div class="form-group" id="passwordField">
+                    <label for="usuarioClave">Clave *</label>
+                    <input type="password" id="usuarioClave" required>
+                    <small class="text-muted">La clave solo se puede establecer al crear un nuevo usuario</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioFecha">Fecha</label>
+                    <input type="date" id="usuarioFecha">
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioTelefono">Teléfono</label>
+                    <input type="tel" id="usuarioTelefono">
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioDireccion">Dirección</label>
+                    <textarea id="usuarioDireccion" rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="usuarioRol">Rol *</label>
+                    <select id="usuarioRol" required>
+                        <option value="cliente">Cliente</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="usuarioActivo" checked>
+                        <span class="checkmark"></span>
+                        Usuario activo
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-add-cart-outline" onclick="cerrarModal('modalUsuario')">Cancelar</button>
+                    <button type="submit" class="btn-add-cart">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/saludo.js"></script>
+    <script src="../js/logout.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/crud-functions.js"></script>
 </body>
 </html>
