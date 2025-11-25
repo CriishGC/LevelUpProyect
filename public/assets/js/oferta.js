@@ -124,26 +124,41 @@
         const cod = encodeURIComponent(p.cod || p.id || '');
         const detalleHref = `product.html?cod=${cod}`;
 
+        // stock handling: prefer explicit stock field, fall back to 'cantidad' if present
+        const stockVal = (typeof p.stock !== 'undefined') ? Number(p.stock)
+          : (typeof p.cantidad !== 'undefined') ? Number(p.cantidad)
+          : null;
+        const stockHtml = (stockVal === null)
+          ? ''
+          : (stockVal > 0)
+            ? `<div class="stock-info">En stock: ${stockVal}</div>`
+            : `<div class="stock-info text-danger">Agotado</div>`;
+        const addBtnDisabledAttr = (stockVal === 0) ? 'disabled' : '';
+        const addBtnClass = (stockVal === 0)
+          ? 'btn btn-secondary btn-add-cart-js flex-fill disabled'
+          : 'btn btn-primary btn-add-cart-js flex-fill';
+
         return `
-          <div class="product-card oferta-card p-0" data-id="${escapeHtml_local(p.id || p.cod)}">
+          <div class="card bg-dark text-white border-secondary h-100 product-card oferta-card" data-id="${escapeHtml_local(p.id || p.cod)}">
             ${descuentoBadge ? `<div class="badge-desc">-${descuentoBadge}%</div>` : (p.oferta ? `<div class="badge-desc">OFERTA</div>` : '')}
-            <img src="${srcImg}" class="card-img-top oferta-img" alt="${escapeHtml_local(p.nombre)}" onerror="this.src='${PLACEHOLDER_IMG}'">
-            <div class="card-body d-flex flex-column oferta-body">
-              <div>
-                <h5 class="card-title oferta-title">${escapeHtml_local(p.nombre)}</h5>
-                <div class="oferta-cat text-secondary">${escapeHtml_local(cat)}</div>
+            <img src="${srcImg}" class="card-img-top p-3 oferta-img" alt="${escapeHtml_local(p.nombre)}" onerror="this.src='${PLACEHOLDER_IMG}'" style="max-height:200px;object-fit:contain;">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title font-orbitron oferta-title">${escapeHtml_local(p.nombre)}</h5>
+              <div class="oferta-cat mb-2">${escapeHtml_local(cat)}</div>
+              <div class="oferta-price text-success fw-bold mb-2">
+                ${ (precios.oferta && precios.precioOriginal > precios.precioOferta)
+                    ? `<div class="precio-original">$${formateaCLP_local(precios.precioOriginal)}</div>
+                       <div class="precio-oferta">$${formateaCLP_local(precios.precioOferta)}</div>`
+                    : `<div class="precio-oferta">$${formateaCLP_local(precios.precioOriginal)}</div>`
+                }
               </div>
-              <div class="mt-auto d-flex justify-content-between align-items-end gap-2">
-                <div class="oferta-price text-end">
-                  ${ (precios.oferta && precios.precioOriginal > precios.precioOferta)
-                      ? `<div class="precio-original">$${formateaCLP_local(precios.precioOriginal)}</div>
-                         <div class="precio-oferta">$${formateaCLP_local(precios.precioOferta)}</div>`
-                      : `<div class="precio-oferta">$${formateaCLP_local(precios.precioOriginal)}</div>`
-                  }
+              <div class="mt-auto d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  ${stockHtml}
                 </div>
-                <div class="d-grid gap-2" style="min-width:120px;">
-                  <a class="btn btn-outline-light btn-ver" href="${detalleHref}">Ver detalle</a>
-                  <button class="btn-add-cart btn-add-cart-js" data-id="${escapeHtml_local(p.id || p.cod)}">Agregar</button>
+                <div class="d-flex gap-2 oferta-actions">
+                  <a class="btn btn-outline-light btn-ver flex-fill" href="${detalleHref}">Ver detalle</a>
+                  <button class="${addBtnClass}" ${addBtnDisabledAttr} data-id="${escapeHtml_local(p.id || p.cod)}">Agregar al Carrito</button>
                 </div>
               </div>
             </div>

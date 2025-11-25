@@ -98,7 +98,7 @@
 }
 
 /* Actions */
-.oferta-actions { margin-top: auto; display:flex; gap:8px; }
+.oferta-actions { margin-top: auto; display:flex; gap:8px; flex-wrap: wrap; }
 .btn-add-cart {
   background: var(--accent-green);
   color: #000;
@@ -109,6 +109,17 @@
 }
 .btn-add-cart:hover { filter: brightness(.95); transform: translateY(-1px); }
 .btn-ver { border-radius: 8px; }
+
+/* Make oferta action buttons scale and avoid being clipped */
+.oferta-actions .btn { flex: 1 1 auto; min-width: 0; display: inline-flex; align-items: center; justify-content: center; }
+@media (max-width: 575px) {
+  .oferta-actions .btn { width: 100%; }
+}
+
+/* Stock info styles */
+.stock-info { font-size: 0.92rem; font-weight: 700; color: #cfd8dc; }
+.stock-info.text-danger { color: #ff3b30; }
+.stock-info.text-success { color: var(--accent-green); }
 
 /* Empty state */
 .no-ofertas { padding: 2rem; color: #cfcfcf; }
@@ -1237,3 +1248,40 @@ body {
 #total {
   color: #fff !important;
 }
+
+/* Strengthened rules so oferta images follow catalog visual style */
+.oferta-card .card-img-top,
+.oferta-card .oferta-img {
+  /* Make offer images look like catalog: white pad area, contain, centered */
+  padding: 0.75rem; /* match Bootstrap p-3 */
+  max-height: 200px;
+  height: auto !important;
+  object-fit: contain !important;
+  object-position: center center;
+  background: #ffffff; /* white background like catalog */
+  display: block;
+  border-radius: 12px 12px 0 0; /* ensure top corners are rounded */
+}
+@media (max-width: 991px) {
+  .oferta-card .card-img-top,
+  .oferta-card .oferta-img { max-height: 180px; }
+}
+@media (max-width: 575px) {
+  .oferta-card .card-img-top,
+  .oferta-card .oferta-img { max-height: 140px; }
+}
+
+/* Category pill styling to match catalog screenshot */
+.oferta-cat {
+  display: inline-block;
+  background: #0d6efd; /* Bootstrap primary blue */
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-align: center;
+  width: 100%;
+}
+
+.oferta-price { color: #fff; font-weight: 800; }
+.precio-oferta { color: var(--accent-green); }
